@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cut Planner</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f2ec;
+        --panel: #ffffff;
+        --ink: #202124;
+        --muted: #667085;
+        --line: #d9dee7;
+        --accent: #1f7a6d;
+        --accent-strong: #145c52;
+        --warn: #a24914;
+        --wood: #f1c989;
+        --wood-line: #bf8441;
+        --cut: #2c6ebd;
+        --shadow: 0 10px 30px rgba(31, 41, 55, 0.1);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+      button, input, select { font: inherit; }
+      button { border: 0; cursor: pointer; }
+      .app { min-height: 100vh; display: grid; grid-template-columns: minmax(320px, 420px) minmax(0, 1fr); }
+      .sidebar { border-right: 1px solid var(--line); background: var(--panel); padding: 22px; overflow: auto; }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+      .mark {
+        width: 38px; height: 38px; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,.28), transparent), var(--accent);
+        display: grid; place-items: center; color: #fff; font-weight: 800;
+      }
+      h1 { font-size: 1.35rem; line-height: 1.15; margin: 0; }
+      .subtle { color: var(--muted); font-size: .9rem; margin: 2px 0 0; }
+      .section { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
+      .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      h2 { font-size: .94rem; margin: 0; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .grid.three { grid-template-columns: .7fr 1fr 1fr; }
+      label { display: grid; gap: 5px; color: #394150; font-size: .78rem; font-weight: 650; }
+      input, select { width: 100%; min-height: 38px; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: #fff; color: var(--ink); }
+      input:focus, select:focus { outline: 2px solid rgba(31,122,109,.22); border-color: var(--accent); }
+      .btn { min-height: 38px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: #eef3f2; color: var(--accent-strong); font-weight: 750; }
+      .btn.primary { width: 100%; margin-top: 16px; min-height: 46px; background: var(--accent); color: #fff; }
+      .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+      .btn.icon { width: 38px; padding: 0; flex: 0 0 auto; }
+      .item { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; margin-bottom: 10px; }
+      .item-head { display: flex; align-items: center; gap: 8px; }
+      .item-head input { flex: 1 1 auto; }
+      .checkline { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #394150; font-size: .88rem; }
+      .checkline input { width: 16px; min-height: 16px; }
+      .main { min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+      .toolbar { background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .stats { display: grid; grid-template-columns: repeat(4, minmax(112px, auto)); gap: 10px; }
+      .stat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 112px; }
+      .stat b { display: block; font-size: 1.04rem; }
+      .stat span { color: var(--muted); font-size: .74rem; font-weight: 700; text-transform: uppercase; }
+      .workspace { padding: 22px; overflow: auto; }
+      .message { background: #fff8eb; border: 1px solid #e7c98f; border-radius: 8px; color: var(--warn); padding: 12px 14px; margin-bottom: 16px; font-weight: 650; }
+      .sheet { margin-bottom: 28px; }
+      .sheet-header { display: flex; justify-content: space-between; gap: 12px; align-items: end; margin-bottom: 10px; }
+      .sheet-title { font-size: 1rem; font-weight: 800; }
+      .sheet-meta { color: var(--muted); font-size: .86rem; }
+      .board-wrap { width: min(100%, 980px); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 14px; }
+      .board { position: relative; width: 100%; aspect-ratio: var(--sheet-ratio); background: linear-gradient(90deg, rgba(126,82,29,.1) 1px, transparent 1px), linear-gradient(0deg, rgba(126,82,29,.08) 1px, transparent 1px), var(--wood); background-size: 36px 36px; border: 2px solid var(--wood-line); overflow: hidden; }
+      .piece { position: absolute; border: 2px solid #174f90; background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 45%), var(--cut); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4px; min-width: 18px; min-height: 18px; overflow: hidden; }
+      .piece strong { max-width: 100%; font-size: clamp(.5rem, 1.4vw, .9rem); line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .piece span { font-size: clamp(.46rem, 1.05vw, .72rem); opacity: .9; white-space: nowrap; }
+      .offcuts { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: .82rem; }
+      .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: #fff; }
+      .empty { max-width: 620px; color: var(--muted); font-size: 1rem; line-height: 1.55; }
+      @media (max-width: 900px) {
+        .app { grid-template-columns: 1fr; }
+        .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+        .toolbar, .sheet-header { align-items: stretch; flex-direction: column; }
+        .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 520px) {
+        .grid, .grid.three { grid-template-columns: 1fr; }
+        .sidebar, .toolbar, .workspace { padding: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">CP</div><div><h1>Cut Planner</h1><p class="subtle">Sheet goods layout optimizer</p></div></div>
+        <section class="section"><div class="section-title"><h2>Stock</h2><button class="btn" id="addStock" type="button">+ Stock</button></div><div id="stockList"></div></section>
+        <section class="section"><div class="section-title"><h2>Cuts</h2><button class="btn" id="addCut" type="button">+ Cut</button></div><div id="cutList"></div></section>
+        <section class="section">
+          <div class="grid"><label>Kerf <input id="kerf" type="text" inputmode="decimal" value="1/8" /></label><label>Units <select id="units"><option value="in">Inches</option><option value="mm">Millimeters</option></select></label></div>
+          <label class="checkline"><input id="allowRotate" type="checkbox" checked /> Rotate parts when it improves yield</label>
+          <button class="btn primary" id="optimize" type="button">Optimize Layout</button>
+        </section>
+      </aside>
+      <main class="main"><div class="toolbar"><div><h2>Layout</h2><p class="subtle">Best result from several placement passes that minimize sheet waste, kerf, and stranded offcuts.</p></div><div class="stats" id="stats"></div></div><div class="workspace"><div id="messages"></div><div id="results" class="empty">Enter stock and cut dimensions, then run the optimizer.</div></div></main>
+    </div>
+    <template id="stockTemplate"><div class="item stock-item"><div class="item-head"><input data-field="name" aria-label="Stock name" /><button class="btn icon ghost" data-remove type="button" title="Remove stock">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
+    <template id="cutTemplate"><div class="item cut-item"><div class="item-head"><input data-field="name" aria-label="Cut name" /><button class="btn icon ghost" data-remove type="button" title="Remove cut">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
+    <script>
+      const stockList = document.querySelector("#stockList");
+      const cutList = document.querySelector("#cutList");
+      const results = document.querySelector("#results");
+      const messages = document.querySelector("#messages");
+      const stats = document.querySelector("#stats");
+      const units = document.querySelector("#units");
+      const kerfInput = document.querySelector("#kerf");
+      const allowRotateInput = document.querySelector("#allowRotate");
+      const presets = {
+        stock: [{ name: "Plywood sheet", qty: 2, w: "4'", h: "8'", thickness: "3/4", group: "plywood" }],
+        cuts: [
+          { name: "Side panel", qty: 2, w: "15 3/4", h: "34 1/2", thickness: "3/4", group: "plywood" },
+          { name: "Top", qty: 1, w: "30", h: "18", thickness: "3/4", group: "plywood" },
+          { name: "Bottom", qty: 1, w: "30", h: "18", thickness: "3/4", group: "plywood" },
+          { name: "Shelf", qty: 3, w: "29 1/4", h: "16", thickness: "3/4", group: "plywood" },
+        ],
+      };
+      function parseMeasure(raw, unit) {
+        const text = String(raw || "").trim().toLowerCase().replace(/-/g, " ").replace(/feet|foot/g, "ft").replace(/inches|inch/g, "in");
+        if (!text) return NaN;
+        let totalInches = 0;
+        const tokens = text.match(/\d+(?:\.\d+)?(?:\s+\d+\/\d+)?|\d+\/\d+|['"]|ft|in|mm/g);
+        if (!tokens) return NaN;
+        for (let i = 0; i < tokens.length; i += 1) {
+          const token = tokens[i];
+          if (["'", '"', "ft", "in", "mm"].includes(token)) continue;
+          const value = parseNumberToken(token);
+          if (!Number.isFinite(value)) return NaN;
+          const suffix = tokens[i + 1];
+          if (suffix === "'" || suffix === "ft") totalInches += value * 12;
+          else if (suffix === "mm") totalInches += value / 25.4;
+          else totalInches += unit === "mm" ? value / 25.4 : value;
+        }
+        return totalInches;
+      }
+      function parseNumberToken(token) {
+        return token.split(/\s+/).reduce((sum, part) => {
+          if (part.includes("/")) {
+            const [n, d] = part.split("/").map(Number);
+            return Number.isFinite(n) && Number.isFinite(d) && d !== 0 ? sum + n / d : NaN;
+          }
+          const value = Number(part);
+          return Number.isFinite(value) ? sum + value : NaN;
+        }, 0);
+      }
+      function formatMeasure(value, unit) {
+        const shown = unit === "mm" ? value * 25.4 : value;
+        if (unit === "mm") return `${Math.round(shown)} mm`;
+        const whole = Math.floor(shown);
+        const frac = shown - whole;
+        const denom = 16;
+        let num = Math.round(frac * denom);
+        let shownWhole = whole;
+        if (num === denom) { shownWhole += 1; num = 0; }
+        if (num === 0) return `${shownWhole}"`;
+        const divisor = gcd(num, denom);
+        return shownWhole ? `${shownWhole} ${num / divisor}/${denom / divisor}"` : `${num / divisor}/${denom / divisor}"`;
+      }
+      function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+      function addRow(type, values = {}) {
+        const template = document.querySelector(type === "stock" ? "#stockTemplate" : "#cutTemplate");
+        const node = template.content.firstElementChild.cloneNode(true);
+        for (const input of node.querySelectorAll("[data-field]")) input.value = values[input.dataset.field] ?? "";
+        node.querySelector("[data-remove]").addEventListener("click", () => { node.remove(); runOptimizer(); });
+        (type === "stock" ? stockList : cutList).appendChild(node);
+        for (const input of node.querySelectorAll("input")) input.addEventListener("change", runOptimizer);
+      }
+      function readRows(container, type) {
+        const unit = units.value;
+        return [...container.children].map((row, index) => {
+          const get = (field) => row.querySelector(`[data-field="${field}"]`).value;
+          return { id: `${type}-${index}`, name: get("name") || `${type === "stock" ? "Sheet" : "Part"} ${index + 1}`, qty: Math.max(1, Math.floor(Number(get("qty")) || 1)), w: parseMeasure(get("w"), unit), h: parseMeasure(get("h"), unit), thickness: get("thickness").trim(), group: get("group").trim().toLowerCase() };
+        });
+      }
+      function expandStock(rows) {
+        const sheets = [];
+        for (const row of rows) for (let i = 0; i < row.qty; i += 1) sheets.push({ ...row, id: `${row.id}-${i}`, label: `${row.name} ${i + 1}`, free: [{ x: 0, y: 0, w: row.w, h: row.h }], pieces: [] });
+        return sheets;
+      }
+      function expandCuts(rows) {
+        const parts = [];
+        for (const row of rows) for (let i = 0; i < row.qty; i += 1) parts.push({ ...row, id: `${row.id}-${i}`, label: row.qty > 1 ? `${row.name} ${i + 1}` : row.name });
+        return parts;
+      }
+      function compatible(sheet, part) {
+        return (!sheet.group || !part.group || sheet.group === part.group) && (!sheet.thickness || !part.thickness || sheet.thickness === part.thickness);
+      }
+      function orientations(part, allowRotate) {
+        const choices = [{ w: part.w, h: part.h, rotated: false }];
+        if (allowRotate && Math.abs(part.w - part.h) > 0.001) choices.push({ w: part.h, h: part.w, rotated: true });
+        return choices;
+      }
+      function sortParts(parts, mode) {
+        const sorted = [...parts];
+        const area = (p) => p.w * p.h;
+        const maxSide = (p) => Math.max(p.w, p.h);
+        const ratio = (p) => Math.max(p.w, p.h) / Math.min(p.w, p.h);
+        const sorters = { area: (a,b) => area(b)-area(a), width: (a,b) => b.w-a.w || area(b)-area(a), height: (a,b) => b.h-a.h || area(b)-area(a), side: (a,b) => maxSide(b)-maxSide(a) || area(b)-area(a), skinny: (a,b) => ratio(b)-ratio(a) || area(b)-area(a) };
+        return sorted.sort(sorters[mode]);
+      }
+      function findPlacement(sheet, part, kerf, allowRotate, strategy) {
+        let best = null;
+        for (let freeIndex = 0; freeIndex < sheet.free.length; freeIndex += 1) {
+          const rect = sheet.free[freeIndex];
+          for (const option of orientations(part, allowRotate)) {
+            const footprintW = option.w + (option.w < rect.w - 0.001 ? kerf : 0);
+            const footprintH = option.h + (option.h < rect.h - 0.001 ? kerf : 0);
+            if (footprintW <= rect.w + 0.001 && footprintH <= rect.h + 0.001) {
+              const leftoverW = rect.w - footprintW;
+              const leftoverH = rect.h - footprintH;
+              const areaFit = rect.w * rect.h - footprintW * footprintH;
+              const shortFit = Math.min(leftoverW, leftoverH);
+              const longFit = Math.max(leftoverW, leftoverH);
+              const score =
+                strategy === "short"
+                  ? shortFit * 100000 + areaFit
+                  : strategy === "long"
+                    ? longFit * 100000 + areaFit
+                    : areaFit * 100000 + shortFit;
+              const candidate = { freeIndex, rect, ...option, footprintW, footprintH, score, areaFit, shortFit, longFit };
+              if (
+                !best ||
+                candidate.score < best.score ||
+                (candidate.score === best.score && candidate.areaFit < best.areaFit) ||
+                (candidate.score === best.score && candidate.areaFit === best.areaFit && candidate.longFit < best.longFit)
+              ) best = candidate;
+            }
+          }
+        }
+        return best;
+      }
+      function applyPlacement(sheet, part, placement) {
+        const used = { x: placement.rect.x, y: placement.rect.y, w: placement.footprintW, h: placement.footprintH };
+        sheet.free = splitFreeRects(sheet.free, used);
+        sheet.pieces.push({ ...part, x: placement.rect.x, y: placement.rect.y, placedW: placement.w, placedH: placement.h, rotated: placement.rotated });
+      }
+      function placePart(sheet, part, kerf, allowRotate, strategy) {
+        const best = findPlacement(sheet, part, kerf, allowRotate, strategy);
+        if (!best) return false;
+        applyPlacement(sheet, part, best);
+        return true;
+      }
+      function splitFreeRects(rects, used) {
+        const next = [];
+        for (const rect of rects) {
+          if (!intersects(rect, used)) {
+            next.push(rect);
+            continue;
+          }
+          if (used.x > rect.x) next.push({ x: rect.x, y: rect.y, w: used.x - rect.x, h: rect.h });
+          if (used.x + used.w < rect.x + rect.w) next.push({ x: used.x + used.w, y: rect.y, w: rect.x + rect.w - (used.x + used.w), h: rect.h });
+          if (used.y > rect.y) next.push({ x: rect.x, y: rect.y, w: rect.w, h: used.y - rect.y });
+          if (used.y + used.h < rect.y + rect.h) next.push({ x: rect.x, y: used.y + used.h, w: rect.w, h: rect.y + rect.h - (used.y + used.h) });
+        }
+        return pruneFreeRects(next);
+      }
+      function intersects(a, b) {
+        return a.x < b.x + b.w - 0.001 && a.x + a.w > b.x + 0.001 && a.y < b.y + b.h - 0.001 && a.y + a.h > b.y + 0.001;
+      }
+      function pruneFreeRects(rects) {
+        return rects.filter((r) => r.w > 0.01 && r.h > 0.01).filter((rect, index, all) => !all.some((other, otherIndex) => index !== otherIndex && rect.x >= other.x - 0.001 && rect.y >= other.y - 0.001 && rect.x + rect.w <= other.x + other.w + 0.001 && rect.y + rect.h <= other.y + other.h + 0.001)).sort((a,b) => a.y-b.y || a.x-b.x);
+      }
+      function optimize(stockRows, cutRows, kerf, allowRotate) {
+        const passes = [];
+        for (const partSort of ["area", "side", "width", "height", "skinny"]) for (const sheetSort of ["area", "small"]) for (const strategy of ["area", "short", "long"]) {
+          const sheets = expandStock(stockRows).sort((a,b) => sheetSort === "small" ? a.w*a.h - b.w*b.h : b.w*b.h - a.w*a.h);
+          const unplaced = [];
+          for (const part of sortParts(expandCuts(cutRows), partSort)) {
+            let bestSheet = null;
+            let bestPlacement = null;
+            let bestScore = Infinity;
+            for (const sheet of sheets) {
+              if (!compatible(sheet, part)) continue;
+              const placement = findPlacement(sheet, part, kerf, allowRotate, strategy);
+              if (!placement) continue;
+              const openingSheetPenalty = sheet.pieces.length ? 0 : sheet.w * sheet.h;
+              const score = placement.score + openingSheetPenalty;
+              if (score < bestScore) {
+                bestScore = score;
+                bestSheet = sheet;
+                bestPlacement = placement;
+              }
+            }
+            if (bestSheet) applyPlacement(bestSheet, part, bestPlacement);
+            else unplaced.push(part);
+          }
+          passes.push(scorePlan({ sheets, unplaced }));
+        }
+        return passes.sort((a,b) => a.score-b.score)[0];
+      }
+      function scorePlan(plan) {
+        const usedSheets = plan.sheets.filter((s) => s.pieces.length);
+        const placedArea = usedSheets.reduce((sum, sheet) => sum + sheet.pieces.reduce((partSum, part) => partSum + part.w * part.h, 0), 0);
+        const usedArea = usedSheets.reduce((sum, sheet) => sum + sheet.w * sheet.h, 0);
+        const unplacedArea = plan.unplaced.reduce((sum, part) => sum + part.w * part.h, 0);
+        const wasteArea = Math.max(0, usedArea - placedArea);
+        return { ...plan, usedSheets, placedArea, usedArea, wasteArea, yieldRate: usedArea ? placedArea / usedArea : 0, score: plan.unplaced.length * 1000000 + usedSheets.length * 10000 + wasteArea + unplacedArea * 100 };
+      }
+      function validate(stockRows, cutRows) {
+        const errors = [];
+        if (!stockRows.length) errors.push("Add at least one stock sheet.");
+        if (!cutRows.length) errors.push("Add at least one cut.");
+        for (const row of [...stockRows, ...cutRows]) if (!Number.isFinite(row.w) || !Number.isFinite(row.h) || row.w <= 0 || row.h <= 0) errors.push(`${row.name} has an invalid width or length.`);
+        return errors;
+      }
+      function runOptimizer() {
+        const stockRows = readRows(stockList, "stock");
+        const cutRows = readRows(cutList, "cut");
+        const kerf = parseMeasure(kerfInput.value, units.value);
+        const errors = validate(stockRows, cutRows);
+        if (!Number.isFinite(kerf) || kerf < 0) errors.push("Kerf must be zero or greater.");
+        if (errors.length) { renderMessages(errors); results.className = "empty"; results.textContent = "Fix the inputs to generate a layout."; stats.innerHTML = ""; return; }
+        const plan = optimize(stockRows, cutRows, kerf, allowRotateInput.checked);
+        renderMessages(plan.unplaced.length ? [`${plan.unplaced.length} cut(s) could not fit in the available stock.`] : []);
+        renderStats(plan);
+        renderPlan(plan);
+      }
+      function renderMessages(items) { messages.innerHTML = items.map((item) => `<div class="message">${escapeHtml(item)}</div>`).join(""); }
+      function renderStats(plan) {
+        const totalCuts = plan.usedSheets.reduce((sum, sheet) => sum + sheet.pieces.length, 0);
+        const wastePct = plan.usedArea ? plan.wasteArea / plan.usedArea * 100 : 0;
+        stats.innerHTML = [["Sheets", plan.usedSheets.length], ["Placed cuts", totalCuts], ["Yield", `${Math.round(plan.yieldRate * 100)}%`], ["Waste", `${Math.round(wastePct)}%`]].map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
+      }
+      function renderPlan(plan) {
+        const unit = units.value;
+        if (!plan.usedSheets.length) { results.className = "empty"; results.textContent = "No cuts were placed."; return; }
+        results.className = "";
+        results.innerHTML = plan.usedSheets.map((sheet, index) => {
+          const pieces = sheet.pieces.map((piece) => {
+            const left = piece.x / sheet.w * 100, top = piece.y / sheet.h * 100, width = piece.placedW / sheet.w * 100, height = piece.placedH / sheet.h * 100;
+            return `<div class="piece" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;" title="${escapeHtml(piece.label)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(piece.w, unit)} x ${formatMeasure(piece.h, unit)}${piece.rotated ? " R" : ""}</span></div>`;
+          }).join("");
+          const offcuts = sheet.free.filter((rect) => rect.w * rect.h > sheet.w * sheet.h * .015).slice(0, 8).map((rect) => `<span class="chip">${formatMeasure(rect.w, unit)} x ${formatMeasure(rect.h, unit)}</span>`).join("");
+          const sheetYield = Math.round(sheet.pieces.reduce((sum, p) => sum + p.w * p.h, 0) / (sheet.w * sheet.h) * 100);
+          return `<section class="sheet"><div class="sheet-header"><div><div class="sheet-title">Sheet ${index + 1}: ${escapeHtml(sheet.label)}</div><div class="sheet-meta">${formatMeasure(sheet.w, unit)} x ${formatMeasure(sheet.h, unit)} | ${sheet.pieces.length} cuts</div></div><div class="sheet-meta">Area yield ${sheetYield}%</div></div><div class="board-wrap"><div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}</div><div class="offcuts">${offcuts || '<span class="chip">No large offcuts</span>'}</div></div></section>`;
+        }).join("");
+      }
+      function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]); }
+      document.querySelector("#addStock").addEventListener("click", () => addRow("stock", { name: "Plywood sheet", qty: 1, w: units.value === "mm" ? "1220" : "4'", h: units.value === "mm" ? "2440" : "8'", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
+      document.querySelector("#addCut").addEventListener("click", () => addRow("cut", { name: "Part", qty: 1, w: units.value === "mm" ? "300" : "12", h: units.value === "mm" ? "600" : "24", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
+      document.querySelector("#optimize").addEventListener("click", runOptimizer);
+      kerfInput.addEventListener("change", runOptimizer);
+      units.addEventListener("change", runOptimizer);
+      allowRotateInput.addEventListener("change", runOptimizer);
+      for (const row of presets.stock) addRow("stock", row);
+      for (const row of presets.cuts) addRow("cut", row);
+      runOptimizer();
+    </script>
+  </body>
+</html>
