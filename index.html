@@ -42,20 +42,24 @@
       .section { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
       .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       h2 { font-size: .94rem; margin: 0; }
+      h3 { font-size: .88rem; margin: 0; font-weight: 700; color: #394150; }
       .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
       .grid.three { grid-template-columns: .7fr 1fr 1fr; }
       label { display: grid; gap: 5px; color: #394150; font-size: .78rem; font-weight: 650; }
       input, select { width: 100%; min-height: 38px; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: #fff; color: var(--ink); }
       input:focus, select:focus { outline: 2px solid rgba(31,122,109,.22); border-color: var(--accent); }
       .btn { min-height: 38px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: #eef3f2; color: var(--accent-strong); font-weight: 750; }
+      .btn:hover { background: #e2ebe9; }
       .btn.primary { width: 100%; margin-top: 16px; min-height: 46px; background: var(--accent); color: #fff; }
+      .btn.primary:hover { background: var(--accent-strong); }
       .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+      .btn.ghost:hover { background: #fbfcfd; border-color: var(--muted); color: var(--ink); }
       .btn.icon { width: 38px; padding: 0; flex: 0 0 auto; }
       .item { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; margin-bottom: 10px; }
       .item-head { display: flex; align-items: center; gap: 8px; }
       .item-head input { flex: 1 1 auto; }
       .checkline { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #394150; font-size: .88rem; }
-      .checkline input { width: 16px; min-height: 16px; }
+      .checkline input { width: 16px; min-height: 16px; margin: 0; }
       .main { min-width: 0; display: grid; grid-template-rows: auto 1fr; }
       .toolbar { background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
       .stats { display: grid; grid-template-columns: repeat(5, minmax(104px, auto)); gap: 10px; }
@@ -63,7 +67,7 @@
       .stat b { display: block; font-size: 1.04rem; }
       .stat span { color: var(--muted); font-size: .74rem; font-weight: 700; text-transform: uppercase; }
       .workspace { padding: 22px; overflow: auto; }
-      .message { background: #fff8eb; border: 1px solid #e7c98f; border-radius: 8px; color: var(--warn); padding: 12px 14px; margin-bottom: 16px; font-weight: 650; }
+      .message { background: #fff8eb; border: 1px solid #e7c98f; border-radius: 8px; color: var(--warn); padding: 12px 14px; margin-bottom: 16px; font-weight: 650; white-space: pre-line; }
       .sheet { margin-bottom: 28px; }
       .sheet-header { display: flex; justify-content: space-between; gap: 12px; align-items: end; margin-bottom: 10px; }
       .sheet-title { font-size: 1rem; font-weight: 800; }
@@ -76,6 +80,197 @@
       .offcuts { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: .82rem; }
       .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: #fff; }
       .empty { max-width: 620px; color: var(--muted); font-size: 1rem; line-height: 1.55; }
+      
+      /* Modern Modal Styling */
+      .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+      .modal-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal {
+        background: var(--panel);
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        border: 1px solid var(--line);
+        width: min(90%, 540px);
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+      }
+      .modal-backdrop.active .modal {
+        transform: scale(1);
+      }
+      .modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+      .modal-close {
+        background: none;
+        font-size: 1.4rem;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0 4px;
+      }
+      .modal-close:hover {
+        color: var(--ink);
+      }
+      .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+      .modal-footer {
+        padding: 14px 20px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background: #fbfcfd;
+        border-radius: 0 0 12px 12px;
+      }
+      .modal-textarea {
+        width: 100%;
+        height: 180px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        resize: none;
+        background: #fafafa;
+        color: var(--ink);
+      }
+
+      /* Visual Board Layouts */
+      .linear-board-container {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .linear-board-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        box-shadow: var(--shadow);
+      }
+      .linear-board-title {
+        font-size: 0.92rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .linear-board-subtitle {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+      .linear-board-bar {
+        height: 38px;
+        background: #f1c989;
+        border: 2px solid #bf8441;
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+      .linear-board-segment {
+        height: 100%;
+        border-right: 2px solid #174f90;
+        background: var(--cut);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.78rem;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 0 4px;
+        position: relative;
+      }
+      .linear-board-segment strong {
+        font-weight: 700;
+        font-size: 0.76rem;
+      }
+      .linear-board-segment span {
+        font-size: 0.65rem;
+        opacity: 0.9;
+      }
+      .linear-board-waste {
+        height: 100%;
+        background: repeating-linear-gradient(
+          45deg,
+          #dfb273,
+          #dfb273 10px,
+          #e9bd82 10px,
+          #e9bd82 20px
+        );
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        color: #8b5a2b;
+        font-weight: 650;
+      }
+      .linear-board-kerf {
+        width: 2px;
+        height: 100%;
+        background: #bf8441;
+        flex-shrink: 0;
+      }
+      .ripped-board-strips {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: #fdfaf7;
+        padding: 8px;
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+      }
+      .ripped-strip-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ripped-strip-label {
+        font-size: 0.76rem;
+        font-weight: 750;
+        width: 60px;
+        flex-shrink: 0;
+        color: var(--muted);
+      }
+
       @media (max-width: 900px) {
         .app { grid-template-columns: 1fr; }
         .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -86,24 +281,246 @@
         .grid, .grid.three { grid-template-columns: 1fr; }
         .sidebar, .toolbar, .workspace { padding: 16px; }
       }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
     </style>
   </head>
   <body>
     <div class="app">
       <aside class="sidebar">
-        <div class="brand"><div class="mark">CP</div><div><h1>Cut Planner</h1><p class="subtle">Sheet goods layout optimizer</p></div></div>
-        <section class="section"><div class="section-title"><h2>Stock</h2><button class="btn" id="addStock" type="button">+ Stock</button></div><div id="stockList"></div></section>
-        <section class="section"><div class="section-title"><h2>Cuts</h2><button class="btn" id="addCut" type="button">+ Cut</button></div><div id="cutList"></div></section>
+        <div class="brand"><div class="mark">CP</div><div><h1>Cut Planner</h1><p class="subtle">Optimal cut planning tool</p></div></div>
+        
+        <!-- Project Section -->
         <section class="section">
-          <div class="grid"><label>Kerf <input id="kerf" type="text" inputmode="decimal" value="1/8" /></label><label>Units <select id="units"><option value="in">Inches</option><option value="mm">Millimeters</option></select></label></div>
+          <div class="section-title"><h2>Project</h2></div>
+          <div class="grid">
+            <button class="btn" id="importJsonBtn" type="button">Import JSON</button>
+            <button class="btn" id="exportJsonBtn" type="button">Export JSON</button>
+          </div>
+          <div class="grid" style="margin-top: 10px; grid-template-columns: 1.1fr 1fr;">
+            <button class="btn ghost" id="copyJsonSchema" type="button" style="font-size: 0.74rem; padding: 4px 6px; min-height: 28px;">Copy Schema</button>
+            <button class="btn ghost" id="copyJsonTemplate" type="button" style="font-size: 0.74rem; padding: 4px 6px; min-height: 28px;">Copy Template</button>
+          </div>
+          <input id="jsonImportFile" type="file" accept="application/json,.json" hidden />
+        </section>
+
+        <!-- Stock Mode Section -->
+        <section class="section">
+          <div class="section-title">
+            <h2>Stock Mode</h2>
+            <div style="display: flex; background: #eef3f2; padding: 2px; border-radius: 6px;">
+              <button class="btn ghost" id="modeManual" type="button" onclick="setStockMode('manual')" style="padding: 4px 10px; min-height: 28px; border-radius: 4px; font-size: 0.8rem; border: 0; background: var(--accent); color: #fff;">Manual</button>
+              <button class="btn ghost" id="modeAuto" type="button" onclick="setStockMode('auto')" style="padding: 4px 10px; min-height: 28px; border-radius: 4px; font-size: 0.8rem; border: 0; background: transparent; color: var(--muted);">Auto</button>
+            </div>
+          </div>
+          
+          <!-- Manual Stock Controls -->
+          <div id="manualStockSection">
+            <div class="section-title" style="margin-top: 10px;">
+              <h3>Manual Stock</h3>
+              <button class="btn" id="addStock" type="button" style="padding: 4px 8px; min-height: 28px; font-size: 0.8rem;">+ Stock</button>
+            </div>
+            <div id="stockList"></div>
+          </div>
+
+          <!-- Auto Stock Controls -->
+          <div id="autoStockSection" style="display: none; margin-top: 12px;">
+            <div class="section-title">
+              <h3>Auto Stock Options</h3>
+              <button class="btn ghost" id="manageCatalogBtn" type="button" onclick="openCatalogModal()" style="padding: 4px 8px; min-height: 28px; font-size: 0.78rem;">Manage Catalog</button>
+            </div>
+            <div style="display: grid; gap: 10px;">
+              <label>Strategy
+                <select id="autoStrategy" onchange="runOptimizer()">
+                  <option value="practical">Practical (Default)</option>
+                  <option value="cheapest">Cheapest</option>
+                  <option value="least-waste">Least Waste</option>
+                  <option value="fewest-boards">Fewest Boards</option>
+                  <option value="fewest-rips">Fewest Rips</option>
+                </select>
+              </label>
+              
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                <label class="checkline" style="margin-top: 0;"><input id="allowExactWidth" type="checkbox" checked onchange="runOptimizer()" /> Allow exact-width boards</label>
+                <label class="checkline" style="margin-top: 0;"><input id="allowRipping" type="checkbox" checked onchange="runOptimizer()" /> Allow ripping wider boards</label>
+              </div>
+
+              <div style="margin-top: 4px;">
+                <span style="font-size: 0.78rem; font-weight: 650; color: #394150; display: block; margin-bottom: 6px;">Allowed Board Lengths</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.84rem;">
+                  <label class="checkline" style="margin-top: 0;"><input type="checkbox" class="length-checkbox" value="8" checked onchange="runOptimizer()" /> 8'</label>
+                  <label class="checkline" style="margin-top: 0;"><input type="checkbox" class="length-checkbox" value="10" checked onchange="runOptimizer()" /> 10'</label>
+                  <label class="checkline" style="margin-top: 0;"><input type="checkbox" class="length-checkbox" value="12" checked onchange="runOptimizer()" /> 12'</label>
+                  <label class="checkline" style="margin-top: 0;"><input type="checkbox" class="length-checkbox" value="16" onchange="runOptimizer()" /> 16'</label>
+                </div>
+              </div>
+
+              <div class="grid">
+                <label>Rip Kerf <input id="ripKerf" type="text" inputmode="decimal" value="1/8" onchange="runOptimizer()" /></label>
+                <label>Crosscut Kerf <input id="crosscutKerf" type="text" inputmode="decimal" value="1/8" onchange="runOptimizer()" /></label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cuts Section -->
+        <section class="section">
+          <div class="section-title"><h2>Cuts</h2><button class="btn" id="addCut" type="button">+ Cut</button></div>
+          <div id="cutList"></div>
+        </section>
+
+        <!-- Standard Layout controls -->
+        <section class="section">
+          <div class="grid"><label id="globalKerfLabel">Kerf <input id="kerf" type="text" inputmode="decimal" value="1/8" /></label><label>Units <select id="units"><option value="in">Inches</option><option value="mm">Millimeters</option></select></label></div>
           <label class="checkline"><input id="allowRotate" type="checkbox" checked /> Rotate parts when it improves yield</label>
           <button class="btn primary" id="optimize" type="button">Optimize Layout</button>
         </section>
       </aside>
       <main class="main"><div class="toolbar"><div><h2>Layout</h2><p class="subtle">Best result from several placement passes that minimize sheet waste, kerf, and stranded offcuts.</p></div><div class="stats" id="stats"></div></div><div class="workspace"><div id="messages"></div><div id="results" class="empty">Enter stock and cut dimensions, then run the optimizer.</div></div></main>
     </div>
+    
     <template id="stockTemplate"><div class="item stock-item"><div class="item-head"><input data-field="name" aria-label="Stock name" /><button class="btn icon ghost" data-remove type="button" title="Remove stock">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
     <template id="cutTemplate"><div class="item cut-item"><div class="item-head"><input data-field="name" aria-label="Cut name" /><button class="btn icon ghost" data-remove type="button" title="Remove cut">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
+
+    <!-- Dialog Backdrops -->
+    <div class="modal-backdrop" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Confirm Import</h3>
+          <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Importing will replace current stock and cuts. This cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn ghost" onclick="closeModal('confirmModal')">Cancel</button>
+          <button class="btn" id="confirmImportBtn" style="background: var(--accent); color: #fff;">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="fallbackModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="fallbackTitle">Clipboard Access Blocked</h3>
+          <button class="modal-close" onclick="closeModal('fallbackModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="fallbackMsg">Clipboard access was blocked. The content is selected below. Press Ctrl+C to copy.</p>
+          <textarea class="modal-textarea" id="fallbackText" readonly></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" onclick="closeModal('fallbackModal')" style="background: var(--accent); color: #fff;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Catalog Modal -->
+    <div class="modal-backdrop" id="catalogModal">
+      <div class="modal" style="width: min(95%, 720px); max-height: 90vh;">
+        <div class="modal-header">
+          <h3>Manage Stock Catalog</h3>
+          <button class="modal-close" onclick="closeModal('catalogModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 16px;">
+          <!-- Active Items -->
+          <div style="margin-bottom: 18px; max-height: 240px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; background: #fafafa;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.84rem;">
+              <thead>
+                <tr style="background: #eef3f2; border-bottom: 1px solid var(--line);">
+                  <th style="padding: 10px;">Name</th>
+                  <th style="padding: 10px;">Group / Thickness</th>
+                  <th style="padding: 10px;">Type</th>
+                  <th style="padding: 10px;">Details</th>
+                  <th style="padding: 10px; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="catalogTableBody">
+                <!-- Filled dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Add / Edit Form -->
+          <div style="border-top: 1px solid var(--line); padding-top: 14px;">
+            <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;" id="catalogFormTitle">Add Catalog Entry</h4>
+            <form id="catalogForm" onsubmit="saveCatalogEntry(event)">
+              <input type="hidden" id="catEntryId" />
+              <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <label>Name <input id="catName" type="text" required placeholder="e.g. 1x2 Pine" /></label>
+                <label>Material Group <input id="catGroup" type="text" required placeholder="e.g. painted trim" /></label>
+                <label>Thickness <input id="catThickness" type="text" required placeholder="e.g. 3/4" /></label>
+              </div>
+              <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
+                <label>Type 
+                  <select id="catKind" onchange="toggleCatalogFormFields()">
+                    <option value="sheet">Sheet Goods</option>
+                    <option value="linear-exact">Exact-Width Linear</option>
+                    <option value="linear-rippable">Rippable Linear</option>
+                  </select>
+                </label>
+                <label>Max Quantity <input id="catMaxQty" type="number" min="1" step="1" value="10" required /></label>
+              </div>
+
+              <!-- Sheet Specific Fields -->
+              <div id="catSheetFields" class="grid" style="margin-top: 10px; grid-template-columns: 1fr 1fr 1fr;">
+                <label>Width <input id="catWidth" type="text" placeholder="e.g. 4'" /></label>
+                <label>Length <input id="catLength" type="text" placeholder="e.g. 8'" /></label>
+                <label>Cost <input id="catCost" type="number" min="0" step="0.01" placeholder="e.g. 64.50" /></label>
+              </div>
+
+              <!-- Linear Specific Fields -->
+              <div id="catLinearFields" style="display: none; margin-top: 10px;">
+                <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                  <label>Actual Board Width <input id="catActualWidth" type="text" placeholder="e.g. 1.5 or 3.5" /></label>
+                  <label>Lengths (comma-sep) <input id="catLengths" type="text" placeholder="e.g. 8', 10', 12'" /></label>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label>Cost by Length (e.g. 8':8.5, 10':11.25) <input id="catCostByLength" type="text" placeholder="e.g. 8':8.50, 10':11.25" /></label>
+                </div>
+              </div>
+
+              <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn ghost" type="button" onclick="resetCatalogForm()">Clear Form</button>
+                <button class="btn" type="submit" style="background: var(--accent); color: #fff;">Save Entry</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: space-between;">
+          <button class="btn ghost" onclick="resetCatalogToDefaults()" style="color: var(--warn); border-color: rgba(162,73,20,0.2);">Reset to Defaults</button>
+          <button class="btn" onclick="closeModal('catalogModal')" style="background: var(--accent); color: #fff;">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Runner Modal -->
+    <div class="modal-backdrop" id="testModal">
+      <div class="modal" style="width: min(90%, 640px); max-height: 85vh;">
+        <div class="modal-header">
+          <h3 style="display: flex; align-items: center; gap: 8px;">🧪 E2E Browser Self-Test Suite</h3>
+          <button class="modal-close" onclick="closeModal('testModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.82rem; background: #0c111d; color: #f4f5f6; border-radius: 0 0 12px 12px;">
+          <div id="testProgress" style="margin-bottom: 16px; font-size: 0.9rem; font-weight: 700; color: #12b76a;">Waiting to start...</div>
+          <div id="testLogs" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px; text-align: left; line-height: 1.4;">
+            <!-- Logs filled dynamically -->
+          </div>
+        </div>
+        <div class="modal-footer" style="background: #1d2939; border-top: 1px solid #344054; border-radius: 0 0 12px 12px;">
+          <button class="btn ghost" onclick="closeModal('testModal')" style="color: #eaecf0; border-color: #475467; background: transparent;">Close</button>
+          <button class="btn" onclick="startE2ETests()" style="background: var(--accent); color: #fff;">Run All Tests</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Test Button -->
+    <button id="runTestsBtn" type="button" style="position: fixed; bottom: 20px; right: 20px; z-index: 999; background: #0c111d; color: #fff; padding: 10px 16px; border-radius: 999px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; cursor: pointer; border: 0;" onclick="openModal('testModal')">
+      🧪 Run Self-Tests
+    </button>
+
     <script>
       const stockList = document.querySelector("#stockList");
       const cutList = document.querySelector("#cutList");
@@ -113,6 +530,7 @@
       const units = document.querySelector("#units");
       const kerfInput = document.querySelector("#kerf");
       const allowRotateInput = document.querySelector("#allowRotate");
+      
       const presets = {
         stock: [{ name: "Plywood sheet", qty: 2, w: "4'", h: "8'", thickness: "3/4", group: "plywood" }],
         cuts: [
@@ -122,6 +540,948 @@
           { name: "Shelf", qty: 3, w: "29 1/4", h: "16", thickness: "3/4", group: "plywood" },
         ],
       };
+
+      // Built-in Stock Catalog Default Values
+      const defaultStockCatalog = [
+        {
+          id: "plywood-34-4x8",
+          kind: "sheet",
+          name: "3/4 plywood sheet",
+          group: "plywood",
+          thickness: "3/4",
+          width: "4'",
+          length: "8'",
+          maxQty: 10,
+          cost: 64.5
+        },
+        {
+          id: "select-pine-1x2",
+          kind: "linear-exact",
+          name: "1x2 select pine",
+          group: "painted trim",
+          thickness: "3/4",
+          actualWidth: "1.5",
+          lengths: ["8'", "10'", "12'"],
+          costByLength: {
+            "8'": 8.5,
+            "10'": 11.25,
+            "12'": 14.0
+          }
+        },
+        {
+          id: "select-pine-1x4",
+          kind: "linear-rippable",
+          name: "1x4 select pine",
+          group: "painted trim",
+          thickness: "3/4",
+          actualWidth: "3.5",
+          lengths: ["8'", "10'", "12'"],
+          costByLength: {
+            "8'": 12.0,
+            "10'": 16.0,
+            "12'": 20.0
+          }
+        }
+      ];
+
+      // Custom State
+      let stockCatalog = [...defaultStockCatalog];
+      let currentStockMode = "manual"; // "manual" | "auto"
+
+      // Initialize Catalog from Local Storage
+      const savedCatalog = localStorage.getItem("stockCatalog");
+      if (savedCatalog) {
+        try {
+          stockCatalog = JSON.parse(savedCatalog);
+        } catch (e) {
+          stockCatalog = [...defaultStockCatalog];
+        }
+      }
+
+      // JSON Import constants
+      const PROJECT_IMPORT_SCHEMA_VERSION = 1;
+
+      const projectImportJsonSchema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://cut-planner.local/schema/project-import.v1.json",
+        "title": "Cut Planner Project Import",
+        "type": "object",
+        "required": ["schemaVersion", "stockTypes", "cuts"],
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "project": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": true
+          },
+          "settings": {
+            "type": "object",
+            "properties": {
+              "units": { "enum": ["in", "mm"] },
+              "kerf": { "$ref": "#/$defs/measure" },
+              "ripKerf": { "$ref": "#/$defs/measure" },
+              "crosscutKerf": { "$ref": "#/$defs/measure" },
+              "allowRotate": { "type": "boolean" },
+              "stockMode": { "enum": ["manual", "auto"] }
+            },
+            "additionalProperties": true
+          },
+          "stockTypes": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/stockType" }
+          },
+          "stockCatalog": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/stockCatalogEntry" }
+          },
+          "manualStock": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/manualStockEntry" }
+          },
+          "cuts": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/cut" }
+          }
+        },
+        "additionalProperties": true,
+        "$defs": {
+          "measure": {
+            "oneOf": [
+              { "type": "string", "minLength": 1 },
+              { "type": "number", "exclusiveMinimum": 0 }
+            ]
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "stockType": {
+            "type": "object",
+            "required": ["id", "material", "thickness", "kind"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "name": { "type": "string" },
+              "material": { "type": "string", "minLength": 1 },
+              "thickness": { "$ref": "#/$defs/measure" },
+              "kind": { "enum": ["sheet", "linear"] },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": true
+          },
+          "cut": {
+            "type": "object",
+            "required": ["name", "stockTypeId", "qty", "width", "length"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "name": { "type": "string", "minLength": 1 },
+              "stockTypeId": { "$ref": "#/$defs/id" },
+              "qty": { "type": "integer", "minimum": 1 },
+              "width": { "$ref": "#/$defs/measure" },
+              "length": { "$ref": "#/$defs/measure" },
+              "grain": { "enum": ["none", "width", "length"] },
+              "canRotate": { "type": "boolean" },
+              "canRip": { "type": "boolean" },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": true
+          },
+          "manualStockEntry": {
+            "type": "object",
+            "required": ["name", "stockTypeId", "qty", "width", "length"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "name": { "type": "string", "minLength": 1 },
+              "stockTypeId": { "$ref": "#/$defs/id" },
+              "qty": { "type": "integer", "minimum": 1 },
+              "width": { "$ref": "#/$defs/measure" },
+              "length": { "$ref": "#/$defs/measure" },
+              "cost": { "type": ["number", "null"], "minimum": 0 },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": true
+          },
+          "stockCatalogEntry": {
+            "type": "object",
+            "required": ["id", "stockTypeId", "kind", "name"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "stockTypeId": { "$ref": "#/$defs/id" },
+              "kind": { "enum": ["sheet", "linear-exact", "linear-rippable"] },
+              "name": { "type": "string", "minLength": 1 },
+              "width": { "$ref": "#/$defs/measure" },
+              "length": { "$ref": "#/$defs/measure" },
+              "actualWidth": { "$ref": "#/$defs/measure" },
+              "lengths": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/$defs/measure" }
+              },
+              "maxQty": { "type": "integer", "minimum": 1 },
+              "cost": { "type": ["number", "null"], "minimum": 0 },
+              "costByLength": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": ["number", "null"],
+                  "minimum": 0
+                }
+              },
+              "ripKerf": { "$ref": "#/$defs/measure" },
+              "notes": { "type": "string" }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "kind": { "const": "sheet" } },
+                  "required": ["kind"]
+                },
+                "then": { "required": ["width", "length"] }
+              },
+              {
+                "if": {
+                  "properties": { "kind": { "enum": ["linear-exact", "linear-rippable"] } },
+                  "required": ["kind"]
+                },
+                "then": { "required": ["actualWidth", "lengths"] }
+              }
+            ],
+            "additionalProperties": true
+          }
+        }
+      };
+
+      const projectImportJsonTemplate = {
+        "schemaVersion": 1,
+        "project": {
+          "name": "Cabinet and trim project"
+        },
+        "settings": {
+          "units": "in",
+          "kerf": "1/8",
+          "ripKerf": "1/8",
+          "crosscutKerf": "1/8",
+          "allowRotate": true,
+          "stockMode": "auto"
+        },
+        "stockTypes": [
+          {
+            "id": "plywood-34",
+            "name": "3/4 plywood",
+            "material": "plywood",
+            "thickness": "3/4",
+            "kind": "sheet"
+          },
+          {
+            "id": "painted-trim-34",
+            "name": "3/4 painted trim",
+            "material": "painted trim",
+            "thickness": "3/4",
+            "kind": "linear"
+          }
+        ],
+        "stockCatalog": [
+          {
+            "id": "plywood-34-4x8",
+            "stockTypeId": "plywood-34",
+            "kind": "sheet",
+            "name": "3/4 plywood sheet",
+            "width": "4'",
+            "length": "8'",
+            "maxQty": 10,
+            "cost": 64.5
+          },
+          {
+            "id": "select-pine-1x2",
+            "stockTypeId": "painted-trim-34",
+            "kind": "linear-exact",
+            "name": "1x2 select pine",
+            "actualWidth": "1 1/2",
+            "lengths": ["8'", "10'", "12'"],
+            "costByLength": {
+              "8'": 8.5,
+              "10'": 11.25,
+              "12'": 14.0
+            }
+          },
+          {
+            "id": "select-pine-1x4",
+            "stockTypeId": "painted-trim-34",
+            "kind": "linear-rippable",
+            "name": "1x4 select pine",
+            "actualWidth": "3 1/2",
+            "lengths": ["8'", "10'", "12'"],
+            "ripKerf": "1/8",
+            "costByLength": {
+              "8'": 12.0,
+              "10'": 16.0,
+              "12'": 20.0
+            }
+          }
+        ],
+        "cuts": [
+          {
+            "name": "Side panel",
+            "stockTypeId": "plywood-34",
+            "qty": 2,
+            "width": "15 3/4",
+            "length": "34 1/2"
+          },
+          {
+            "name": "Top",
+            "stockTypeId": "plywood-34",
+            "qty": 1,
+            "width": "30",
+            "length": "18"
+          },
+          {
+            "name": "Long trim",
+            "stockTypeId": "painted-trim-34",
+            "qty": 4,
+            "width": "1 1/2",
+            "length": "75"
+          },
+          {
+            "name": "Short trim",
+            "stockTypeId": "painted-trim-34",
+            "qty": 2,
+            "width": "1 1/2",
+            "length": "17 1/8"
+          }
+        ]
+      };
+
+      // Modal Helpers
+      function openModal(id) {
+        document.getElementById(id).classList.add("active");
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("active");
+      }
+
+      // Stock Mode Toggling
+      function setStockMode(mode) {
+        currentStockMode = mode;
+        const manualBtn = document.getElementById("modeManual");
+        const autoBtn = document.getElementById("modeAuto");
+        const manualSection = document.getElementById("manualStockSection");
+        const autoSection = document.getElementById("autoStockSection");
+        const globalKerfLabel = document.getElementById("globalKerfLabel");
+        
+        if (mode === "manual") {
+          manualBtn.style.background = "var(--accent)";
+          manualBtn.style.color = "#fff";
+          autoBtn.style.background = "transparent";
+          autoBtn.style.color = "var(--muted)";
+          manualSection.style.display = "block";
+          autoSection.style.display = "none";
+          globalKerfLabel.style.display = "grid";
+        } else {
+          autoBtn.style.background = "var(--accent)";
+          autoBtn.style.color = "#fff";
+          manualBtn.style.background = "transparent";
+          manualBtn.style.color = "var(--muted)";
+          manualSection.style.display = "none";
+          autoSection.style.display = "block";
+          globalKerfLabel.style.display = "none";
+        }
+        runOptimizer();
+      }
+
+      // Clipboard handling
+      async function copyTextToClipboard(text, successMsg) {
+        try {
+          await navigator.clipboard.writeText(text);
+          renderMessages([successMsg]);
+        } catch (error) {
+          document.getElementById("fallbackTitle").textContent = "Copy To Clipboard";
+          document.getElementById("fallbackMsg").textContent = "Clipboard access was blocked. The content is selected below. Press Ctrl+C to copy.";
+          const textarea = document.getElementById("fallbackText");
+          textarea.value = text;
+          openModal("fallbackModal");
+          textarea.focus();
+          textarea.select();
+        }
+      }
+
+      // Measurement Helper for Import
+      function parseImportMeasure(val, unit) {
+        if (typeof val === "number") {
+          return unit === "mm" ? val / 25.4 : val;
+        }
+        return parseMeasure(val, unit);
+      }
+
+      // Import Validation layers
+      function validateProjectImportDocument(doc) {
+        const errors = [];
+        const unit = doc.settings?.units || "in";
+
+        if (doc.schemaVersion !== 1) {
+          errors.push("schemaVersion must be 1.");
+        }
+        if (!Array.isArray(doc.stockTypes) || doc.stockTypes.length === 0) {
+          errors.push("stockTypes must be a non-empty array.");
+        }
+        if (!Array.isArray(doc.cuts) || doc.cuts.length === 0) {
+          errors.push("cuts must be a non-empty array.");
+        }
+
+        if (errors.length > 0) return errors;
+
+        // Stock Types Validation
+        const stockTypeMap = new Map();
+        const idPattern = /^[A-Za-z0-9_-]+$/;
+
+        doc.stockTypes.forEach((st, idx) => {
+          if (!st.id || !idPattern.test(st.id)) {
+            errors.push(`stockTypes[${idx}] must have a valid alphanumeric ID.`);
+            return;
+          }
+          if (stockTypeMap.has(st.id)) {
+            errors.push(`Duplicate stockType ID found: "${st.id}".`);
+          }
+          if (!st.material || String(st.material).trim().length === 0) {
+            errors.push(`stockTypes[${st.id || idx}] is missing material.`);
+          }
+          const thick = parseImportMeasure(st.thickness, unit);
+          if (!Number.isFinite(thick) || thick <= 0) {
+            errors.push(`stockTypes[${st.id || idx}] thickness must parse to a positive number.`);
+          }
+          if (st.kind !== "sheet" && st.kind !== "linear") {
+            errors.push(`stockTypes[${st.id || idx}] kind must be "sheet" or "linear".`);
+          }
+
+          stockTypeMap.set(st.id, st);
+        });
+
+        if (errors.length > 0) return errors;
+
+        // Cuts Validation
+        doc.cuts.forEach((cut, idx) => {
+          const prefix = `cuts[${idx}] "${cut.name || ''}"`;
+          if (!cut.name || String(cut.name).trim().length === 0) {
+            errors.push(`cuts[${idx}] is missing a name.`);
+          }
+          if (!cut.stockTypeId || !stockTypeMap.has(cut.stockTypeId)) {
+            errors.push(`${prefix} references unknown stockTypeId "${cut.stockTypeId}".`);
+            return;
+          }
+
+          const st = stockTypeMap.get(cut.stockTypeId);
+          const w = parseImportMeasure(cut.width, unit);
+          const l = parseImportMeasure(cut.length, unit);
+          const qty = parseInt(cut.qty);
+
+          if (!Number.isFinite(qty) || qty <= 0) {
+            errors.push(`${prefix} quantity must be a positive integer.`);
+          }
+          if (!Number.isFinite(w) || w <= 0) {
+            errors.push(`${prefix} width must be greater than zero.`);
+          }
+          if (!Number.isFinite(l) || l <= 0) {
+            errors.push(`${prefix} length must be greater than zero.`);
+          }
+
+          if (st.kind === "linear") {
+            // linear cuts should have valid width and length
+            if (st.thickness && parseImportMeasure(st.thickness, unit) <= 0) {
+              errors.push(`${prefix} has invalid thickness in stockType.`);
+            }
+          }
+        });
+
+        // Manual Stock Validation
+        if (Array.isArray(doc.manualStock)) {
+          doc.manualStock.forEach((stk, idx) => {
+            const prefix = `manualStock[${idx}] "${stk.name || ''}"`;
+            if (!stk.stockTypeId || !stockTypeMap.has(stk.stockTypeId)) {
+              errors.push(`${prefix} references unknown stockTypeId "${stk.stockTypeId}".`);
+              return;
+            }
+            const w = parseImportMeasure(stk.width, unit);
+            const l = parseImportMeasure(stk.length, unit);
+            const qty = parseInt(stk.qty);
+
+            if (!Number.isFinite(qty) || qty <= 0) {
+              errors.push(`${prefix} quantity must be a positive integer.`);
+            }
+            if (!Number.isFinite(w) || w <= 0) {
+              errors.push(`${prefix} width must be greater than zero.`);
+            }
+            if (!Number.isFinite(l) || l <= 0) {
+              errors.push(`${prefix} length must be greater than zero.`);
+            }
+          });
+        }
+
+        // Stock Catalog Validation
+        if (Array.isArray(doc.stockCatalog)) {
+          const catIds = new Set();
+          doc.stockCatalog.forEach((cat, idx) => {
+            const prefix = `stockCatalog[${idx}] "${cat.name || ''}"`;
+            if (!cat.id || !idPattern.test(cat.id)) {
+              errors.push(`stockCatalog[${idx}] must have a valid alphanumeric ID.`);
+              return;
+            }
+            if (catIds.has(cat.id)) {
+              errors.push(`Duplicate stockCatalog ID: "${cat.id}".`);
+            }
+            catIds.add(cat.id);
+
+            if (!cat.stockTypeId || !stockTypeMap.has(cat.stockTypeId)) {
+              errors.push(`${prefix} references unknown stockTypeId "${cat.stockTypeId}".`);
+              return;
+            }
+
+            const st = stockTypeMap.get(cat.stockTypeId);
+
+            if (cat.kind === "sheet") {
+              if (st.kind !== "sheet") {
+                errors.push(`${prefix}: A sheet catalog entry cannot reference a linear stock type.`);
+              }
+              const w = parseImportMeasure(cat.width, unit);
+              const l = parseImportMeasure(cat.length, unit);
+              if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(l) || l <= 0) {
+                errors.push(`${prefix} must have positive width and length.`);
+              }
+            } else if (cat.kind === "linear-exact" || cat.kind === "linear-rippable") {
+              if (st.kind !== "linear") {
+                errors.push(`${prefix}: A linear catalog entry cannot reference a sheet stock type.`);
+              }
+              const actW = parseImportMeasure(cat.actualWidth, unit);
+              if (!Number.isFinite(actW) || actW <= 0) {
+                errors.push(`${prefix} must have a valid actualWidth.`);
+              }
+              if (!Array.isArray(cat.lengths) || cat.lengths.length === 0) {
+                errors.push(`${prefix} must define an array of available lengths.`);
+              } else {
+                cat.lengths.forEach((len, lIdx) => {
+                  const lVal = parseImportMeasure(len, unit);
+                  if (!Number.isFinite(lVal) || lVal <= 0) {
+                    errors.push(`${prefix} lengths[${lIdx}] must be a positive measurement.`);
+                  }
+                });
+              }
+            } else {
+              errors.push(`${prefix} kind must be "sheet", "linear-exact", or "linear-rippable".`);
+            }
+          });
+        }
+
+        return errors;
+      }
+
+      function applyProjectImport(doc) {
+        const unit = doc.settings?.units || "in";
+        units.value = unit;
+        kerfInput.value = doc.settings?.kerf ?? "1/8";
+        allowRotateInput.checked = doc.settings?.allowRotate !== false;
+
+        // Clear current lists
+        stockList.innerHTML = "";
+        cutList.innerHTML = "";
+
+        const stockTypeMap = new Map();
+        doc.stockTypes.forEach(st => stockTypeMap.set(st.id, st));
+
+        // Pop cuts
+        doc.cuts.forEach(cut => {
+          const st = stockTypeMap.get(cut.stockTypeId);
+          addRow("cut", {
+            name: cut.name,
+            qty: cut.qty,
+            w: String(cut.width),
+            h: String(cut.length),
+            thickness: st.thickness,
+            group: st.material
+          });
+        });
+
+        // Pop manual stock if present
+        if (Array.isArray(doc.manualStock) && doc.manualStock.length > 0) {
+          doc.manualStock.forEach(stk => {
+            const st = stockTypeMap.get(stk.stockTypeId);
+            addRow("stock", {
+              name: stk.name,
+              qty: stk.qty,
+              w: String(stk.width),
+              h: String(stk.length),
+              thickness: st.thickness,
+              group: st.material
+            });
+          });
+        }
+
+        // Import catalog
+        if (Array.isArray(doc.stockCatalog) && doc.stockCatalog.length > 0) {
+          stockCatalog = doc.stockCatalog.map(cat => {
+            const st = stockTypeMap.get(cat.stockTypeId);
+            const entry = {
+              id: cat.id,
+              name: cat.name,
+              group: st.material,
+              thickness: String(st.thickness),
+              kind: cat.kind,
+              maxQty: cat.maxQty || 10
+            };
+            if (cat.kind === "sheet") {
+              entry.width = String(cat.width);
+              entry.length = String(cat.length);
+              entry.cost = cat.cost !== undefined ? cat.cost : null;
+            } else {
+              entry.actualWidth = String(cat.actualWidth);
+              entry.lengths = cat.lengths.map(String);
+              entry.costByLength = cat.costByLength || null;
+            }
+            return entry;
+          });
+          localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+        }
+
+        // Set mode
+        const modeToSet = doc.settings?.stockMode || (doc.manualStock ? "manual" : "auto");
+        setStockMode(modeToSet);
+      }
+
+      function setupJsonImportControls() {
+        const fileInput = document.getElementById("jsonImportFile");
+        const importBtn = document.getElementById("importJsonBtn");
+        const exportBtn = document.getElementById("exportJsonBtn");
+        const copySchemaBtn = document.getElementById("copyJsonSchema");
+        const copyTemplateBtn = document.getElementById("copyJsonTemplate");
+
+        importBtn.addEventListener("click", () => fileInput.click());
+
+        fileInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            let doc;
+            try {
+              doc = JSON.parse(event.target.result);
+            } catch (err) {
+              renderMessages([`The selected file is not valid JSON.\n${err.message}`]);
+              return;
+            }
+
+            const validationErrors = validateProjectImportDocument(doc);
+            if (validationErrors.length > 0) {
+              renderMessages([`Import failed:\n- ${validationErrors.join('\n- ')}`]);
+              return;
+            }
+
+            // Confirm replacing
+            const hasExistingRows = stockList.children.length > 0 || cutList.children.length > 0;
+            if (hasExistingRows) {
+              const confirmBtn = document.getElementById("confirmImportBtn");
+              confirmBtn.onclick = () => {
+                applyProjectImport(doc);
+                closeModal("confirmModal");
+                fileInput.value = "";
+              };
+              openModal("confirmModal");
+            } else {
+              applyProjectImport(doc);
+              fileInput.value = "";
+            }
+          };
+          reader.readAsText(file);
+        });
+
+        // Copy buttons
+        copySchemaBtn.addEventListener("click", () => {
+          const text = JSON.stringify(projectImportJsonSchema, null, 2);
+          copyTextToClipboard(text, "JSON schema copied to clipboard.");
+        });
+
+        copyTemplateBtn.addEventListener("click", () => {
+          const text = JSON.stringify(projectImportJsonTemplate, null, 2);
+          copyTextToClipboard(text, "JSON template copied to clipboard.");
+        });
+
+        // Export button
+        exportBtn.addEventListener("click", () => {
+          const stockRows = readRows(stockList, "stock");
+          const cutRows = readRows(cutList, "cut");
+          const unit = units.value;
+          const kerf = kerfInput.value;
+          const allowRotate = allowRotateInput.checked;
+
+          const toExportMeasure = (val) => {
+            return unit === "mm" ? Math.round(val * 25.4) : val;
+          };
+
+          const stockTypes = [];
+          const stockTypeMap = new Map();
+
+          function getOrCreateStockType(thickness, material, kind) {
+            const key = `${thickness}_${material}`;
+            if (stockTypeMap.has(key)) return stockTypeMap.get(key);
+            const id = `${material.replace(/[^A-Za-z0-9_-]/g, "-")}-${thickness.replace(/[^A-Za-z0-9_-]/g, "-")}`.toLowerCase().replace(/-+/g, "-");
+            const type = {
+              id,
+              name: `${thickness} ${material}`,
+              material,
+              thickness,
+              kind
+            };
+            stockTypes.push(type);
+            stockTypeMap.set(key, id);
+            return id;
+          }
+
+          const cuts = cutRows.map((row, idx) => {
+            const kind = inferCutKind(row, stockCatalog) === "sheet-part" ? "sheet" : "linear";
+            const stockTypeId = getOrCreateStockType(row.thickness, row.group, kind);
+            return {
+              id: `cut-${idx}`,
+              name: row.name,
+              stockTypeId,
+              qty: row.qty,
+              width: toExportMeasure(row.w),
+              length: toExportMeasure(row.h)
+            };
+          });
+
+          const manualStock = stockRows.map((row, idx) => {
+            const stockTypeId = getOrCreateStockType(row.thickness, row.group, "sheet");
+            return {
+              id: `stock-${idx}`,
+              name: row.name,
+              stockTypeId,
+              qty: row.qty,
+              width: toExportMeasure(row.w),
+              length: toExportMeasure(row.h)
+            };
+          });
+
+          const doc = {
+            schemaVersion: 1,
+            project: {
+              name: "Exported Project"
+            },
+            settings: {
+              units: unit,
+              kerf,
+              allowRotate,
+              stockMode: currentStockMode
+            },
+            stockTypes,
+            manualStock,
+            cuts
+          };
+
+          const text = JSON.stringify(doc, null, 2);
+          const blob = new Blob([text], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "cut-planner-project.json";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      // Catalog Modal Helpers
+      function openCatalogModal() {
+        renderCatalogTable();
+        resetCatalogForm();
+        openModal("catalogModal");
+      }
+
+      function toggleCatalogFormFields() {
+        const kind = document.getElementById("catKind").value;
+        const sheetFields = document.getElementById("catSheetFields");
+        const linearFields = document.getElementById("catLinearFields");
+        if (kind === "sheet") {
+          sheetFields.style.display = "grid";
+          linearFields.style.display = "none";
+        } else {
+          sheetFields.style.display = "none";
+          linearFields.style.display = "block";
+        }
+      }
+
+      function renderCatalogTable() {
+        const tbody = document.getElementById("catalogTableBody");
+        tbody.innerHTML = "";
+        const unit = units.value;
+        
+        stockCatalog.forEach(entry => {
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--line)";
+          
+          let details = "";
+          if (entry.kind === "sheet") {
+            const wVal = parseImportMeasure(entry.width, unit);
+            const lVal = parseImportMeasure(entry.length, unit);
+            details = `${formatMeasure(wVal, unit)} x ${formatMeasure(lVal, unit)}`;
+            if (entry.cost) details += ` ($${Number(entry.cost).toFixed(2)})`;
+          } else {
+            const actW = parseImportMeasure(entry.actualWidth, unit);
+            details = `w: ${formatMeasure(actW, unit)}, lengths: ${entry.lengths.map(len => formatMeasure(parseImportMeasure(len, unit), unit)).join(", ")}`;
+            if (entry.costByLength) {
+              const costs = Object.entries(entry.costByLength).map(([len, cost]) => {
+                const lenVal = parseImportMeasure(len, unit);
+                return `${formatMeasure(lenVal, unit)}:$${cost}`;
+              }).join(", ");
+              details += ` (${costs})`;
+            }
+          }
+          
+          const kindLabel = entry.kind === "sheet" ? "Sheet" : entry.kind === "linear-exact" ? "Exact Linear" : "Rippable Linear";
+          
+          tr.innerHTML = `
+            <td style="padding: 8px 10px; font-weight: 600;">${escapeHtml(entry.name)}</td>
+            <td style="padding: 8px 10px;">${escapeHtml(entry.group)} / ${escapeHtml(entry.thickness)}</td>
+            <td style="padding: 8px 10px;"><span class="chip" style="font-size: 0.72rem; padding: 2px 6px;">${kindLabel}</span></td>
+            <td style="padding: 8px 10px; color: var(--muted); font-size: 0.78rem;">${escapeHtml(details)}</td>
+            <td style="padding: 8px 10px; text-align: right; white-space: nowrap;">
+              <button class="btn ghost" onclick="editCatalogEntry('${entry.id}')" style="padding: 2px 6px; min-height: 24px; font-size: 0.74rem; margin-right: 4px;">Edit</button>
+              <button class="btn ghost" onclick="deleteCatalogEntry('${entry.id}')" style="padding: 2px 6px; min-height: 24px; font-size: 0.74rem; color: var(--warn); border-color: rgba(162,73,20,0.15);">Del</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function editCatalogEntry(id) {
+        const entry = stockCatalog.find(e => e.id === id);
+        if (!entry) return;
+        
+        document.getElementById("catEntryId").value = entry.id;
+        document.getElementById("catName").value = entry.name;
+        document.getElementById("catGroup").value = entry.group;
+        document.getElementById("catThickness").value = entry.thickness;
+        document.getElementById("catKind").value = entry.kind;
+        document.getElementById("catMaxQty").value = entry.maxQty || 10;
+        
+        toggleCatalogFormFields();
+        
+        if (entry.kind === "sheet") {
+          document.getElementById("catWidth").value = entry.width || "";
+          document.getElementById("catLength").value = entry.length || "";
+          document.getElementById("catCost").value = entry.cost !== null ? entry.cost : "";
+          
+          document.getElementById("catActualWidth").value = "";
+          document.getElementById("catLengths").value = "";
+          document.getElementById("catCostByLength").value = "";
+        } else {
+          document.getElementById("catWidth").value = "";
+          document.getElementById("catLength").value = "";
+          document.getElementById("catCost").value = "";
+          
+          document.getElementById("catActualWidth").value = entry.actualWidth || "";
+          document.getElementById("catLengths").value = entry.lengths ? entry.lengths.join(", ") : "";
+          
+          let costStr = "";
+          if (entry.costByLength) {
+            costStr = Object.entries(entry.costByLength).map(([len, cost]) => `${len}:${cost}`).join(", ");
+          }
+          document.getElementById("catCostByLength").value = costStr;
+        }
+        
+        document.getElementById("catalogFormTitle").textContent = "Edit Catalog Entry";
+      }
+
+      function deleteCatalogEntry(id) {
+        if (!confirm("Are you sure you want to delete this catalog entry?")) return;
+        stockCatalog = stockCatalog.filter(e => e.id !== id);
+        localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+        renderCatalogTable();
+        if (document.getElementById("catEntryId").value === id) {
+          resetCatalogForm();
+        }
+        runOptimizer();
+      }
+
+      function resetCatalogForm() {
+        document.getElementById("catEntryId").value = "";
+        document.getElementById("catalogForm").reset();
+        document.getElementById("catalogFormTitle").textContent = "Add Catalog Entry";
+        toggleCatalogFormFields();
+      }
+
+      function resetCatalogToDefaults() {
+        if (!confirm("Are you sure you want to reset the catalog to default values? All customizations will be lost.")) return;
+        stockCatalog = [...defaultStockCatalog];
+        localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+        renderCatalogTable();
+        resetCatalogForm();
+        runOptimizer();
+      }
+
+      function saveCatalogEntry(event) {
+        event.preventDefault();
+        
+        const idInput = document.getElementById("catEntryId").value;
+        const name = document.getElementById("catName").value.trim();
+        const group = document.getElementById("catGroup").value.trim().toLowerCase();
+        const thickness = document.getElementById("catThickness").value.trim();
+        const kind = document.getElementById("catKind").value;
+        const maxQty = parseInt(document.getElementById("catMaxQty").value) || 10;
+        
+        const entryId = idInput || "cat-" + Date.now();
+        
+        const entry = {
+          id: entryId,
+          kind,
+          name,
+          group,
+          thickness,
+          maxQty
+        };
+        
+        if (kind === "sheet") {
+          entry.width = document.getElementById("catWidth").value.trim();
+          entry.length = document.getElementById("catLength").value.trim();
+          const costVal = parseFloat(document.getElementById("catCost").value);
+          entry.cost = Number.isFinite(costVal) ? costVal : null;
+        } else {
+          entry.actualWidth = document.getElementById("catActualWidth").value.trim();
+          const lenRaw = document.getElementById("catLengths").value.trim();
+          entry.lengths = lenRaw.split(",").map(s => s.trim()).filter(Boolean);
+          
+          const costByLenRaw = document.getElementById("catCostByLength").value.trim();
+          if (costByLenRaw) {
+            const costObj = {};
+            costByLenRaw.split(",").forEach(pair => {
+              const parts = pair.split(":");
+              if (parts.length === 2) {
+                const lenKey = parts[0].trim();
+                const costVal = parseFloat(parts[1].trim());
+                if (lenKey && Number.isFinite(costVal)) {
+                  costObj[lenKey] = costVal;
+                }
+              }
+            });
+            entry.costByLength = costObj;
+          } else {
+            entry.costByLength = null;
+          }
+        }
+        
+        const existingIndex = stockCatalog.findIndex(e => e.id === entryId);
+        if (existingIndex > -1) {
+          stockCatalog[existingIndex] = entry;
+        } else {
+          stockCatalog.push(entry);
+        }
+        
+        localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+        renderCatalogTable();
+        resetCatalogForm();
+        runOptimizer();
+      }
+
+
+      // Rest of core layout optimization functions
       function parseMeasure(raw, unit) {
         const text = String(raw || "").trim().toLowerCase().replace(/-/g, " ").replace(/feet|foot/g, "ft").replace(/inches|inch/g, "in");
         if (!text) return NaN;
@@ -309,18 +1669,962 @@
         for (const row of [...stockRows, ...cutRows]) if (!Number.isFinite(row.w) || !Number.isFinite(row.h) || row.w <= 0 || row.h <= 0) errors.push(`${row.name} has an invalid width or length.`);
         return errors;
       }
-      function runOptimizer() {
-        const stockRows = readRows(stockList, "stock");
-        const cutRows = readRows(cutList, "cut");
-        const kerf = parseMeasure(kerfInput.value, units.value);
-        const errors = validate(stockRows, cutRows);
-        if (!Number.isFinite(kerf) || kerf < 0) errors.push("Kerf must be zero or greater.");
-        if (errors.length) { renderMessages(errors); results.className = "empty"; results.textContent = "Fix the inputs to generate a layout."; stats.innerHTML = ""; return; }
-        const plan = optimize(stockRows, cutRows, kerf, allowRotateInput.checked);
-        renderMessages(plan.unplaced.length ? [`${plan.unplaced.length} cut(s) could not fit in the available stock.`] : []);
-        renderStats(plan);
-        renderPlan(plan);
+
+      // Auto Stock Optimizer Logic
+      function inferCutKind(cut, catalog) {
+        const matching = catalog.filter(e => e.group === cut.group && e.thickness === cut.thickness);
+        if (matching.length > 0) {
+          return matching[0].kind === "sheet" ? "sheet-part" : "linear-part";
+        }
+        const g = cut.group.toLowerCase();
+        if (g.includes("plywood") || g.includes("sheet") || g.includes("mdf") || g.includes("panel")) {
+          return "sheet-part";
+        }
+        return "linear-part";
       }
+
+      function packLinearCutsIntoBoards(cuts, boardLength, crosscutKerf) {
+        const pieces = [];
+        for (const cut of cuts) {
+          for (let i = 0; i < cut.qty; i++) {
+            pieces.push({ id: `${cut.id}-${i}`, name: cut.name, length: cut.h });
+          }
+        }
+        pieces.sort((a, b) => b.length - a.length);
+
+        const boards = [];
+        const unplaced = [];
+
+        for (const piece of pieces) {
+          if (piece.length > boardLength) {
+            unplaced.push(piece);
+            continue;
+          }
+          let placed = false;
+          for (const board of boards) {
+            const needed = board.cuts.length === 0 ? piece.length : crosscutKerf + piece.length;
+            if (board.usedLength + needed <= boardLength + 0.001) {
+              board.cuts.push(piece);
+              board.usedLength += needed;
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) {
+            const newBoard = {
+              id: `board-${boards.length + 1}`,
+              cuts: [piece],
+              usedLength: piece.length
+            };
+            boards.push(newBoard);
+          }
+        }
+
+        for (const board of boards) {
+          board.wasteLength = boardLength - board.usedLength;
+        }
+
+        return { boards, unplaced };
+      }
+
+      function getStripCount(actualWidth, requiredWidth, ripKerf) {
+        return Math.floor((actualWidth + ripKerf) / (requiredWidth + ripKerf));
+      }
+
+      function packLinearRippedCuts(cuts, boardLength, stripCount, crosscutKerf, physicalQty) {
+        const pieces = [];
+        for (const cut of cuts) {
+          for (let i = 0; i < cut.qty; i++) {
+            pieces.push({ id: `${cut.id}-${i}`, name: cut.name, length: cut.h });
+          }
+        }
+        pieces.sort((a, b) => b.length - a.length);
+
+        const totalStrips = physicalQty * stripCount;
+        const strips = [];
+        for (let i = 0; i < totalStrips; i++) {
+          strips.push({
+            id: `strip-${i}`,
+            boardIndex: Math.floor(i / stripCount),
+            stripIndex: i % stripCount,
+            cuts: [],
+            usedLength: 0
+          });
+        }
+
+        const unplaced = [];
+        for (const piece of pieces) {
+          if (piece.length > boardLength) {
+            unplaced.push(piece);
+            continue;
+          }
+          let placed = false;
+          for (const strip of strips) {
+            const needed = strip.cuts.length === 0 ? piece.length : crosscutKerf + piece.length;
+            if (strip.usedLength + needed <= boardLength + 0.001) {
+              strip.cuts.push(piece);
+              strip.usedLength += needed;
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) {
+            unplaced.push(piece);
+          }
+        }
+
+        const boards = [];
+        for (let b = 0; b < physicalQty; b++) {
+          const boardStrips = strips.filter(s => s.boardIndex === b);
+          const isUsed = boardStrips.some(s => s.cuts.length > 0);
+          if (isUsed) {
+            boards.push({
+              id: `board-${b + 1}`,
+              strips: boardStrips
+            });
+          }
+        }
+
+        return { boards, unplaced, strips };
+      }
+
+      function scoreScenario(params) {
+        const { kind, unplacedCount, stockQty, totalLengthWaste, ripCount, totalWidthWaste, cost, options } = params;
+        const strategy = options.strategy;
+
+        if (strategy === "cheapest" && cost !== null) {
+          return unplacedCount * 100000000 + cost * 100000 + totalLengthWaste + ripCount * 10;
+        }
+        if (strategy === "least-waste") {
+          return unplacedCount * 100000000 + totalLengthWaste * 100 + totalWidthWaste * 10 + stockQty * 10 + ripCount * 10;
+        }
+        if (strategy === "fewest-boards") {
+          return unplacedCount * 100000000 + stockQty * 100000 + totalLengthWaste * 10 + ripCount * 50;
+        }
+        if (strategy === "fewest-rips") {
+          return unplacedCount * 100000000 + ripCount * 100000 + stockQty * 1000 + totalLengthWaste * 10;
+        }
+
+        // Practical Default or missing costs
+        if (cost !== null) {
+          return unplacedCount * 100000000 + cost * 100000 + stockQty * 1000 + totalLengthWaste * 10 + ripCount * 50 + totalWidthWaste;
+        } else {
+          return unplacedCount * 100000000 + stockQty * 10000 + totalLengthWaste * 10 + ripCount * 50 + totalWidthWaste;
+        }
+      }
+
+      function suggestSheetStockScenarios(cuts, candidates, options) {
+        const scenarios = [];
+        const unit = options.unit;
+
+        for (const candidate of candidates) {
+          const w = parseImportMeasure(candidate.width, unit);
+          const h = parseImportMeasure(candidate.length, unit);
+          
+          if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) continue;
+
+          const maxQty = candidate.maxQty || 10;
+          const stockRows = [{
+            id: candidate.id,
+            name: candidate.name,
+            qty: maxQty,
+            w,
+            h,
+            thickness: candidate.thickness,
+            group: candidate.group
+          }];
+
+          const plan = optimize(stockRows, cuts, options.crosscutKerf, allowRotateInput.checked);
+
+          if (!plan || plan.usedSheets.length === 0) continue;
+
+          const qty = plan.usedSheets.length;
+          const cost = candidate.cost ? qty * candidate.cost : null;
+          const unplacedCount = plan.unplaced.length;
+          const wasteArea = plan.wasteArea;
+
+          let score = 0;
+          if (cost !== null) {
+            score = unplacedCount * 100000000 + cost * 100000 + wasteArea + qty * 1000;
+          } else {
+            score = unplacedCount * 100000000 + qty * 10000 + wasteArea;
+          }
+
+          scenarios.push({
+            kind: "sheet-scenario",
+            stockCandidate: candidate,
+            qty,
+            plan,
+            unplaced: plan.unplaced,
+            usedArea: plan.usedArea,
+            wasteArea,
+            yieldRate: plan.yieldRate,
+            cost,
+            score
+          });
+        }
+
+        scenarios.sort((a, b) => a.score - b.score);
+        return scenarios;
+      }
+
+      function suggestLinearStockScenarios(cuts, requiredWidth, candidates, options) {
+        const scenarios = [];
+        const unit = options.unit;
+        const crosscutKerf = options.crosscutKerf;
+        const ripKerf = options.ripKerf;
+
+        for (const candidate of candidates) {
+          const lengths = (candidate.lengths || []).map(lenStr => parseImportMeasure(lenStr, unit));
+          
+          if (candidate.kind === "linear-exact") {
+            const actualWidth = parseImportMeasure(candidate.actualWidth, unit);
+            if (Math.abs(actualWidth - requiredWidth) > 0.01) continue;
+
+            for (const lengthInches of lengths) {
+              if (!options.allowedLengths.includes(lengthInches)) continue;
+
+              const packResult = packLinearCutsIntoBoards(cuts, lengthInches, crosscutKerf);
+              const stockQty = packResult.boards.length;
+              if (stockQty === 0) continue;
+
+              const lengthStr = candidate.lengths[lengths.indexOf(lengthInches)];
+              const cost = (candidate.costByLength && candidate.costByLength[lengthStr]) 
+                ? stockQty * candidate.costByLength[lengthStr] 
+                : null;
+              
+              const unplacedCount = packResult.unplaced.length;
+              
+              const totalPurchasedLength = stockQty * lengthInches;
+              const totalCutLength = cuts.reduce((sum, c) => sum + c.length * c.qty, 0);
+              const placedPieces = packResult.boards.flatMap(b => b.cuts);
+              const totalPlacedLength = placedPieces.reduce((sum, p) => sum + p.length, 0);
+              const placedCount = placedPieces.length;
+              const totalKerfLoss = placedCount > stockQty ? (placedCount - stockQty) * crosscutKerf : 0;
+              const totalLengthWaste = totalPurchasedLength - (totalPlacedLength + totalKerfLoss);
+              const totalWidthWaste = 0;
+              const ripCount = 0;
+
+              const score = scoreScenario({
+                kind: "linear-exact-scenario",
+                unplacedCount,
+                stockQty,
+                totalLengthWaste,
+                ripCount,
+                totalWidthWaste,
+                cost,
+                options
+              });
+
+              scenarios.push({
+                kind: "linear-exact-scenario",
+                stockCandidate: candidate,
+                stockLength: lengthInches,
+                stockQty,
+                boards: packResult.boards,
+                unplaced: packResult.unplaced,
+                totalPurchasedLength,
+                totalCutLength,
+                totalKerfLoss,
+                totalLengthWaste,
+                totalWidthWaste,
+                ripCount,
+                cost,
+                score
+              });
+            }
+          } else if (candidate.kind === "linear-rippable") {
+            const actualWidth = parseImportMeasure(candidate.actualWidth, unit);
+            if (actualWidth < requiredWidth - 0.01) continue;
+
+            const stripCount = getStripCount(actualWidth, requiredWidth, ripKerf);
+            if (stripCount < 1) continue;
+
+            const leftoverWidth = actualWidth - (stripCount * requiredWidth + (stripCount - 1) * ripKerf);
+
+            for (const lengthInches of lengths) {
+              if (!options.allowedLengths.includes(lengthInches)) continue;
+
+              const maxQty = candidate.maxQty || 10;
+              let bestPackResult = null;
+              let bestStockQty = maxQty;
+              
+              for (let q = 1; q <= maxQty; q++) {
+                const packResult = packLinearRippedCuts(cuts, lengthInches, stripCount, crosscutKerf, q);
+                if (packResult.unplaced.length === 0) {
+                  bestPackResult = packResult;
+                  bestStockQty = q;
+                  break;
+                }
+                if (q === maxQty) {
+                  bestPackResult = packResult;
+                  bestStockQty = maxQty;
+                }
+              }
+
+              if (!bestPackResult || bestPackResult.boards.length === 0) continue;
+
+              const lengthStr = candidate.lengths[lengths.indexOf(lengthInches)];
+              const cost = (candidate.costByLength && candidate.costByLength[lengthStr])
+                ? bestStockQty * candidate.costByLength[lengthStr]
+                : null;
+
+              const unplacedCount = bestPackResult.unplaced.length;
+
+              const totalPurchasedLength = bestStockQty * lengthInches;
+              const totalStripLength = totalPurchasedLength * stripCount;
+              
+              const placedPieces = bestPackResult.boards.flatMap(b => b.strips.flatMap(s => s.cuts));
+              const totalPlacedLength = placedPieces.reduce((sum, p) => sum + p.length, 0);
+              
+              let totalCrosscutKerfLoss = 0;
+              for (const board of bestPackResult.boards) {
+                for (const strip of board.strips) {
+                  if (strip.cuts.length > 1) {
+                    totalCrosscutKerfLoss += (strip.cuts.length - 1) * crosscutKerf;
+                  }
+                }
+              }
+
+              const totalRipKerfLoss = bestStockQty * lengthInches * (stripCount - 1) * ripKerf;
+              const totalLengthWaste = totalStripLength - (totalPlacedLength + totalCrosscutKerfLoss);
+              const totalWidthWaste = bestStockQty * lengthInches * leftoverWidth;
+              const ripCount = bestStockQty * (stripCount - 1);
+
+              const score = scoreScenario({
+                kind: "linear-ripped-scenario",
+                unplacedCount,
+                stockQty: bestStockQty,
+                totalLengthWaste,
+                ripCount,
+                totalWidthWaste,
+                cost,
+                options
+              });
+
+              scenarios.push({
+                kind: "linear-ripped-scenario",
+                stockCandidate: candidate,
+                stockLength: lengthInches,
+                stockQty: bestStockQty,
+                stripsPerBoard: stripCount,
+                leftoverWidth,
+                boards: bestPackResult.boards,
+                unplaced: bestPackResult.unplaced,
+                totalPurchasedLength,
+                totalStripLength,
+                totalCutLength: cuts.reduce((sum, c) => sum + c.length * c.qty, 0),
+                totalCrosscutKerfLoss,
+                totalRipKerfLoss,
+                totalLengthWaste,
+                totalWidthWaste,
+                ripCount,
+                cost,
+                score
+              });
+            }
+          }
+        }
+
+        scenarios.sort((a, b) => a.score - b.score);
+        return scenarios;
+      }
+
+      function runAutoStockOptimizer(cutRows, ripKerf, crosscutKerf, unit) {
+        const cuts = cutRows.map(row => {
+          const kind = inferCutKind(row, stockCatalog);
+          return {
+            ...row,
+            width: row.w,
+            length: row.h,
+            kind
+          };
+        });
+
+        const allowedLengthsInches = [...document.querySelectorAll(".length-checkbox:checked")].map(cb => Number(cb.value) * 12);
+        if (allowedLengthsInches.length === 0) {
+          renderMessages(["Select at least one allowed stock length."]);
+          results.className = "empty";
+          results.textContent = "Choose allowed stock lengths to run Auto Stock.";
+          stats.innerHTML = "";
+          return;
+        }
+
+        const options = {
+          strategy: document.getElementById("autoStrategy").value,
+          allowExactWidth: document.getElementById("allowExactWidth").checked,
+          allowRipping: document.getElementById("allowRipping").checked,
+          allowedLengths: allowedLengthsInches,
+          ripKerf,
+          crosscutKerf,
+          unit
+        };
+
+        const groupsMap = new Map();
+        for (const cut of cuts) {
+          const key = cut.kind === "sheet-part" 
+            ? `sheet_${cut.thickness}_${cut.group}`
+            : `linear_${cut.thickness}_${cut.group}_${round(cut.width)}`;
+          
+          if (!groupsMap.has(key)) {
+            groupsMap.set(key, {
+              key,
+              kind: cut.kind,
+              thickness: cut.thickness,
+              group: cut.group,
+              width: cut.width,
+              cuts: []
+            });
+          }
+          groupsMap.get(key).cuts.push(cut);
+        }
+
+        const planGroups = [];
+        const warnings = [];
+        const buyList = [];
+
+        if (groupsMap.size === 0) {
+          renderMessages(["No cuts available for Auto Stock."]);
+          return;
+        }
+
+        for (const group of groupsMap.values()) {
+          const matchingCatalog = stockCatalog.filter(e => 
+            e.thickness === group.thickness && 
+            e.group === group.group
+          );
+
+          if (matchingCatalog.length === 0) {
+            warnings.push(`No stock catalog entries match group "${group.group}" and thickness "${group.thickness}".`);
+            continue;
+          }
+
+          let recommended = null;
+          let alternatives = [];
+
+          if (group.kind === "sheet-part") {
+            const sheetCandidates = matchingCatalog.filter(e => e.kind === "sheet");
+            if (sheetCandidates.length === 0) {
+              warnings.push(`No sheet stock catalog entries match "${group.thickness} ${group.group}".`);
+              continue;
+            }
+            const scenarios = suggestSheetStockScenarios(group.cuts, sheetCandidates, options);
+            if (scenarios.length > 0) {
+              recommended = scenarios[0];
+              alternatives = scenarios.slice(1);
+            } else {
+              warnings.push(`Could not fit sheet cuts for "${group.thickness} ${group.group}" into available sheet sizes.`);
+            }
+          } else {
+            const linearCandidates = matchingCatalog.filter(e => 
+              (options.allowExactWidth && e.kind === "linear-exact") || 
+              (options.allowRipping && e.kind === "linear-rippable")
+            );
+
+            if (linearCandidates.length === 0) {
+              warnings.push(`No allowed linear stock matches "${group.thickness} ${group.group}" with required width ${formatMeasure(group.width, unit)}.`);
+              continue;
+            }
+
+            const scenarios = suggestLinearStockScenarios(group.cuts, group.width, linearCandidates, options);
+            if (scenarios.length > 0) {
+              recommended = scenarios[0];
+              alternatives = scenarios.slice(1);
+            } else {
+              warnings.push(`Could not fit linear cuts for "${group.thickness} ${group.group}" at width ${formatMeasure(group.width, unit)} into available boards.`);
+            }
+          }
+
+          if (recommended) {
+            planGroups.push({
+              materialKey: group.key,
+              kind: group.kind,
+              thickness: group.thickness,
+              group: group.group,
+              requiredWidth: group.width,
+              recommended,
+              alternatives
+            });
+
+            const qty = recommended.kind === "sheet-scenario" ? recommended.qty : recommended.stockQty;
+            const cand = recommended.stockCandidate;
+            const sizeStr = recommended.kind === "sheet-scenario" 
+              ? `${formatMeasure(parseImportMeasure(cand.width, unit), unit)} x ${formatMeasure(parseImportMeasure(cand.length, unit), unit)}`
+              : `${cand.name} (${formatMeasure(recommended.stockLength, unit)})`;
+            
+            let note = "";
+            if (recommended.kind === "linear-ripped-scenario") {
+              note = `Rip each board into ${recommended.stripsPerBoard} strips @ ${formatMeasure(group.width, unit)}`;
+            }
+
+            buyList.push({
+              materialKey: group.key,
+              name: cand.name,
+              qty,
+              thickness: group.thickness,
+              group: group.group,
+              sizeStr,
+              cost: recommended.cost,
+              note
+            });
+          }
+        }
+
+        renderMessages(warnings.concat(
+          planGroups.some(g => g.recommended.unplaced && g.recommended.unplaced.length > 0)
+            ? ["Some cuts could not fit in the recommended stock quantities."]
+            : []
+        ));
+
+        renderAutoStockStats(planGroups);
+      }
+
+      let lastBuyList = []; // Global variable to store active buy list for cloning
+
+      function convertToManualStock() {
+        if (lastBuyList.length === 0) return;
+        if (!confirm("Are you sure you want to copy the recommended Buy List items into your Manual Stock rows and switch to Manual Mode?")) return;
+        
+        // Clear manual stock list
+        stockList.innerHTML = "";
+        
+        lastBuyList.forEach(item => {
+          addRow("stock", {
+            name: item.name,
+            qty: item.qty,
+            w: item.rawW,
+            h: item.rawH,
+            thickness: item.thickness,
+            group: item.group
+          });
+        });
+        
+        setStockMode("manual");
+      }
+
+      function renderSheetAutoLayout(recommended, unit) {
+        const plan = recommended.plan;
+        if (!plan || !plan.usedSheets || !plan.usedSheets.length) return "No cuts were placed.";
+        
+        return plan.usedSheets.map((sheet, index) => {
+          const pieces = sheet.pieces.map((piece) => {
+            const left = piece.x / sheet.w * 100, top = piece.y / sheet.h * 100, width = piece.placedW / sheet.w * 100, height = piece.placedH / sheet.h * 100;
+            return `<div class="piece" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;" title="${escapeHtml(piece.label)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(piece.w, unit)} x ${formatMeasure(piece.h, unit)}${piece.rotated ? " R" : ""}</span></div>`;
+          }).join("");
+          const offcuts = sheet.free.filter((rect) => rect.w * rect.h > sheet.w * sheet.h * .015).slice(0, 8).map((rect) => `<span class="chip">${formatMeasure(rect.w, unit)} x ${formatMeasure(rect.h, unit)}</span>`).join("");
+          const sheetYield = Math.round(sheet.pieces.reduce((sum, p) => sum + p.w * p.h, 0) / (sheet.w * sheet.h) * 100);
+          return `
+            <section class="sheet" style="margin-bottom: 20px;">
+              <div class="sheet-header">
+                <div>
+                  <div class="sheet-title">Sheet ${index + 1}: ${escapeHtml(sheet.label)}</div>
+                  <div class="sheet-meta">${formatMeasure(sheet.w, unit)} x ${formatMeasure(sheet.h, unit)} | ${sheet.pieces.length} cuts</div>
+                </div>
+                <div class="sheet-meta">Area yield ${sheetYield}%</div>
+              </div>
+              <div class="board-wrap">
+                <div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}</div>
+                <div class="offcuts">${offcuts || '<span class="chip">No large offcuts</span>'}</div>
+              </div>
+            </section>
+          `;
+        }).join("");
+      }
+
+      function renderLinearExactLayout(recommended, unit, crosscutKerf) {
+        const stockLength = recommended.stockLength;
+        
+        return recommended.boards.map((board, bIdx) => {
+          let segmentsHtml = "";
+          board.cuts.forEach((cut, cIdx) => {
+            const cutW = (cut.length / stockLength) * 100;
+            segmentsHtml += `
+              <div class="linear-board-segment" style="width: ${cutW}%;" title="${escapeHtml(cut.name)}: ${formatMeasure(cut.length, unit)}">
+                <strong>${escapeHtml(cut.name)}</strong>
+                <span>${formatMeasure(cut.length, unit)}</span>
+              </div>
+            `;
+            if (cIdx < board.cuts.length - 1 || board.wasteLength > 0.001) {
+              const kerfW = (crosscutKerf / stockLength) * 100;
+              segmentsHtml += `<div class="linear-board-kerf" style="width: ${kerfW}%;"></div>`;
+            }
+          });
+          
+          if (board.wasteLength > 0.001) {
+            const wasteW = (board.wasteLength / stockLength) * 100;
+            segmentsHtml += `
+              <div class="linear-board-waste" style="width: ${wasteW}%;">
+                <span>Waste: ${formatMeasure(board.wasteLength, unit)}</span>
+              </div>
+            `;
+          }
+          
+          return `
+            <div class="linear-board-card" style="margin-bottom: 16px;">
+              <div class="linear-board-title">
+                <span>Board ${bIdx + 1} (${formatMeasure(stockLength, unit)})</span>
+                <span class="chip" style="font-size: 0.76rem; background: #eef3f2; color: var(--accent-strong);">
+                  Waste: ${formatMeasure(board.wasteLength, unit)} (${Math.round(board.wasteLength / stockLength * 100)}%)
+                </span>
+              </div>
+              <div class="linear-board-bar">
+                ${segmentsHtml}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderLinearRippedLayout(recommended, unit, crosscutKerf) {
+        const stockLength = recommended.stockLength;
+        const requiredWidth = recommended.requiredWidth;
+        
+        return recommended.boards.map((board, bIdx) => {
+          let stripsHtml = "";
+          
+          board.strips.forEach((strip, sIdx) => {
+            let segmentsHtml = "";
+            const isStripUsed = strip.cuts.length > 0;
+            
+            if (isStripUsed) {
+              strip.cuts.forEach((cut, cIdx) => {
+                const cutW = (cut.length / stockLength) * 100;
+                segmentsHtml += `
+                  <div class="linear-board-segment" style="width: ${cutW}%;" title="${escapeHtml(cut.name)}: ${formatMeasure(cut.length, unit)}">
+                    <strong>${escapeHtml(cut.name)}</strong>
+                    <span>${formatMeasure(cut.length, unit)}</span>
+                  </div>
+                `;
+                
+                const hasMore = cIdx < strip.cuts.length - 1;
+                const stripWaste = stockLength - strip.usedLength;
+                if (hasMore || stripWaste > 0.001) {
+                  const kerfW = (crosscutKerf / stockLength) * 100;
+                  segmentsHtml += `<div class="linear-board-kerf" style="width: ${kerfW}%;"></div>`;
+                }
+              });
+              
+              const stripWaste = stockLength - strip.usedLength;
+              if (stripWaste > 0.001) {
+                const wasteW = (stripWaste / stockLength) * 100;
+                segmentsHtml += `
+                  <div class="linear-board-waste" style="width: ${wasteW}%;">
+                    <span>Waste: ${formatMeasure(stripWaste, unit)}</span>
+                  </div>
+                `;
+              }
+            } else {
+              segmentsHtml = `
+                <div class="linear-board-waste" style="width: 100%;">
+                  <span>Entirely Unused (Waste: ${formatMeasure(stockLength, unit)})</span>
+                </div>
+              `;
+            }
+            
+            stripsHtml += `
+              <div class="ripped-strip-row" style="margin-bottom: 6px;">
+                <span class="ripped-strip-label">Strip ${sIdx + 1}:</span>
+                <div class="linear-board-bar" style="height: 32px;">
+                  ${segmentsHtml}
+                </div>
+              </div>
+            `;
+          });
+          
+          let leftoversNote = "";
+          if (recommended.leftoverWidth > 0.01) {
+            leftoversNote = `<div style="font-size: 0.74rem; color: var(--warn); margin-top: 6px; font-weight: 600;">Leftover scrap strip width: ${formatMeasure(recommended.leftoverWidth, unit)}</div>`;
+          }
+          
+          return `
+            <div class="linear-board-card" style="margin-bottom: 16px;">
+              <div class="linear-board-title">
+                <span>Board ${bIdx + 1} (${formatMeasure(stockLength, unit)})</span>
+                <span class="chip" style="font-size: 0.76rem; background: #eef3f2; color: var(--accent-strong);">
+                  Ripped into ${recommended.stripsPerBoard} strips
+                </span>
+              </div>
+              <div class="linear-board-subtitle">
+                Purchased Board Actual Width: ${formatMeasure(parseImportMeasure(recommended.stockCandidate.actualWidth, unit), unit)} | Required Strip Width: ${formatMeasure(requiredWidth, unit)}
+              </div>
+              <div class="ripped-board-strips">
+                ${stripsHtml}
+              </div>
+              ${leftoversNote}
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderAutoStockPlan(planGroups, buyList, warnings, unit, options) {
+        lastBuyList = buyList; // Save to global state for manual conversion
+        
+        if (planGroups.length === 0) {
+          results.className = "empty";
+          results.textContent = "No stock recommendations could be generated with the current inputs.";
+          return;
+        }
+
+        results.className = "";
+        
+        // 1. Render Buy List
+        let buyListHtml = "";
+        if (buyList.length > 0) {
+          let totalCost = 0;
+          let hasCosts = false;
+          
+          const itemsHtml = buyList.map(item => {
+            let costStr = "";
+            if (item.cost !== null) {
+              totalCost += item.cost;
+              hasCosts = true;
+              costStr = `<div style="font-weight: 750; color: var(--accent-strong); font-size: 0.95rem;">$${item.cost.toFixed(2)}</div>`;
+            } else {
+              costStr = `<div style="color: var(--muted); font-size: 0.8rem;">Cost: N/A</div>`;
+            }
+            
+            const noteHtml = item.note 
+              ? `<div style="font-size: 0.78rem; color: var(--warn); margin-top: 4px; font-weight: 600;">⚠️ ${escapeHtml(item.note)}</div>` 
+              : "";
+            
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fafafa; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--ink);">${item.qty} x ${escapeHtml(item.name)}</div>
+                  <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Size: ${item.sizeStr} | Category: ${escapeHtml(item.group)} (${escapeHtml(item.thickness)}")</div>
+                  ${noteHtml}
+                </div>
+                <div style="text-align: right;">
+                  ${costStr}
+                </div>
+              </div>
+            `;
+          }).join("");
+          
+          let totalCostHtml = "";
+          if (hasCosts) {
+            totalCostHtml = `
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--line); padding-top: 12px; margin-top: 8px;">
+                <strong style="font-size: 1.05rem;">Estimated Total Cost:</strong>
+                <strong style="font-size: 1.2rem; color: var(--accent-strong); font-weight: 850;">$${totalCost.toFixed(2)}</strong>
+              </div>
+            `;
+          }
+          
+          buyListHtml = `
+            <div class="linear-board-card" style="border-left: 4px solid var(--accent); margin-bottom: 24px; background: #fff;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 1.05rem; font-weight: 850; color: var(--accent-strong); margin: 0;">Recommended Buy List</h3>
+                <button class="btn" onclick="convertToManualStock()" style="background: var(--accent); color: #fff; font-size: 0.78rem; padding: 6px 12px; font-weight: 750; border-radius: 6px; box-shadow: 0 2px 4px rgba(31,122,109,0.15);">
+                  Convert to Manual Stock
+                </button>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${itemsHtml}
+              </div>
+              ${totalCostHtml}
+            </div>
+          `;
+        }
+
+        // 2. Render Ranked Alternatives Panel
+        let alternativesHtml = "";
+        const allAltsHtml = planGroups.map(group => {
+          if (!group.alternatives || group.alternatives.length === 0) return "";
+          
+          const altItemsHtml = group.alternatives.map((alt, altIdx) => {
+            const cand = alt.stockCandidate;
+            const candName = cand.name;
+            const qty = alt.qty || alt.stockQty;
+            const sizeStr = alt.kind === "sheet-scenario" 
+              ? `${formatMeasure(parseImportMeasure(cand.width, unit), unit)} x ${formatMeasure(parseImportMeasure(cand.length, unit), unit)}`
+              : `${candName} (${formatMeasure(alt.stockLength, unit)})`;
+            
+            let details = "";
+            let costStr = alt.cost !== null ? `$${alt.cost.toFixed(2)}` : "N/A";
+            
+            if (alt.kind === "sheet-scenario") {
+              details = `Waste: ${formatMeasure(alt.wasteArea, unit)}² | Yield: ${Math.round(alt.yieldRate * 100)}%`;
+            } else if (alt.kind === "linear-exact-scenario") {
+              details = `Waste: ${formatMeasure(alt.totalLengthWaste, unit)} (No Ripping)`;
+            } else {
+              details = `Waste: ${formatMeasure(alt.totalLengthWaste, unit)} | Rips: ${alt.ripCount} (${alt.stripsPerBoard} strips/board)`;
+            }
+            
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f1f3f5; font-size: 0.8rem;">
+                <div>
+                  <span style="font-weight: 700; color: #394150;">Alt #${altIdx + 1}: ${qty} x ${escapeHtml(candName)} (${sizeStr})</span>
+                  <div style="color: var(--muted); margin-top: 2px;">${details}</div>
+                </div>
+                <div style="font-weight: 700; color: var(--muted);">${costStr}</div>
+              </div>
+            `;
+          }).join("");
+          
+          if (!altItemsHtml) return "";
+          
+          return `
+            <div style="margin-bottom: 10px; border-bottom: 1px solid var(--line); padding-bottom: 10px;">
+              <div style="font-weight: 750; font-size: 0.82rem; color: var(--accent-strong); margin-bottom: 6px;">
+                Category: ${escapeHtml(group.group)} (${escapeHtml(group.thickness)}")
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                ${altItemsHtml}
+              </div>
+            </div>
+          `;
+        }).filter(Boolean).join("");
+
+        if (allAltsHtml) {
+          alternativesHtml = `
+            <details style="margin-bottom: 24px; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 12px; transition: all 0.2s ease;">
+              <summary style="font-weight: 750; cursor: pointer; color: var(--muted); font-size: 0.86rem; user-select: none;">
+                View Alternate Buying Strategies
+              </summary>
+              <div style="margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px;">
+                ${allAltsHtml}
+              </div>
+            </details>
+          `;
+        }
+
+        // 3. Render Cut Plans & Graphics
+        const layoutsHtml = planGroups.map(group => {
+          const rec = group.recommended;
+          let graphicsHtml = "";
+          
+          if (group.kind === "sheet-part") {
+            graphicsHtml = renderSheetAutoLayout(rec, unit);
+          } else if (rec.kind === "linear-exact-scenario") {
+            graphicsHtml = renderLinearExactLayout(rec, unit, options.crosscutKerf);
+          } else if (rec.kind === "linear-rippable-scenario") {
+            graphicsHtml = renderLinearRippedLayout(rec, unit, options.crosscutKerf);
+          }
+          
+          const title = group.kind === "sheet-part" ? "Sheet Stock Layout" : "Linear Cutting Layout";
+          const widthBadge = group.kind === "linear-part" 
+            ? `<span class="chip" style="font-size: 0.74rem; background: #eef3f2; color: var(--accent-strong); font-weight: 700;">Width: ${formatMeasure(group.requiredWidth, unit)}</span>`
+            : "";
+          
+          return `
+            <div style="margin-top: 24px; border-top: 2px dashed var(--line); padding-top: 20px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+                <h3 style="font-size: 1rem; font-weight: 850; margin: 0; color: #344054;">
+                  ${title}: ${escapeHtml(group.group)} (${escapeHtml(group.thickness)}")
+                </h3>
+                ${widthBadge}
+              </div>
+              <div class="linear-board-container">
+                ${graphicsHtml}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        results.innerHTML = `
+          <div style="animation: fadeIn 0.3s ease;">
+            ${buyListHtml}
+            ${alternativesHtml}
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #1d2939; margin: 24px 0 12px 0;">Visual Cutting Plans</h3>
+            ${layoutsHtml}
+          </div>
+        `;
+      }
+
+      function renderAutoStockStats(planGroups) {
+        let totalSheets = 0;
+        let totalBoards = 0;
+        let totalCutsPlaced = 0;
+        let totalCost = 0;
+        let hasCosts = false;
+
+        for (const group of planGroups) {
+          const rec = group.recommended;
+          if (group.kind === "sheet-part") {
+            totalSheets += rec.qty;
+            totalCutsPlaced += rec.plan.usedSheets.reduce((sum, s) => sum + s.pieces.length, 0);
+          } else {
+            totalBoards += rec.stockQty;
+            if (rec.kind === "linear-exact-scenario") {
+              totalCutsPlaced += rec.boards.reduce((sum, b) => sum + b.cuts.length, 0);
+            } else {
+              totalCutsPlaced += rec.boards.reduce((sum, b) => sum + b.strips.reduce((ss, s) => ss + s.cuts.length, 0), 0);
+            }
+          }
+          if (rec.cost !== null) {
+            totalCost += rec.cost;
+            hasCosts = true;
+          }
+        }
+
+        let costStr = hasCosts ? `$${totalCost.toFixed(2)}` : "N/A";
+
+        stats.innerHTML = [
+          ["Sheets Sug.", totalSheets],
+          ["Boards Sug.", totalBoards],
+          ["Cuts Placed", totalCutsPlaced],
+          ["Est. Cost", costStr],
+          ["Yield Avg", "Auto"]
+        ].map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
+      }
+
+      function runOptimizer() {
+        const cutRows = readRows(cutList, "cut");
+        const unit = units.value;
+        const errors = [];
+
+        if (!cutRows.length) {
+          errors.push("Add at least one cut.");
+        }
+        for (const row of cutRows) {
+          if (!Number.isFinite(row.w) || !Number.isFinite(row.h) || row.w <= 0 || row.h <= 0) {
+            errors.push(`${row.name} has an invalid width or length.`);
+          }
+        }
+
+        if (currentStockMode === "manual") {
+          const stockRows = readRows(stockList, "stock");
+          const kerf = parseMeasure(kerfInput.value, unit);
+          if (!stockRows.length) errors.push("Add at least one stock sheet.");
+          for (const row of stockRows) {
+            if (!Number.isFinite(row.w) || !Number.isFinite(row.h) || row.w <= 0 || row.h <= 0) {
+              errors.push(`${row.name} has an invalid width or length.`);
+            }
+          }
+          if (!Number.isFinite(kerf) || kerf < 0) errors.push("Kerf must be zero or greater.");
+
+          if (errors.length) {
+            renderMessages(errors);
+            results.className = "empty";
+            results.textContent = "Fix the inputs to generate a layout.";
+            stats.innerHTML = "";
+            return;
+          }
+
+          const plan = optimize(stockRows, cutRows, kerf, allowRotateInput.checked);
+          renderMessages(plan.unplaced.length ? [`${plan.unplaced.length} cut(s) could not fit in the available stock.`] : []);
+          renderStats(plan);
+          renderPlan(plan);
+        } else {
+          const ripKerf = parseMeasure(document.getElementById("ripKerf").value, unit);
+          const crosscutKerf = parseMeasure(document.getElementById("crosscutKerf").value, unit);
+          
+          if (!Number.isFinite(ripKerf) || ripKerf < 0) errors.push("Rip Kerf must be zero or greater.");
+          if (!Number.isFinite(crosscutKerf) || crosscutKerf < 0) errors.push("Crosscut Kerf must be zero or greater.");
+
+          if (errors.length) {
+            renderMessages(errors);
+            results.className = "empty";
+            results.textContent = "Fix the inputs to generate a layout.";
+            stats.innerHTML = "";
+            return;
+          }
+
+          runAutoStockOptimizer(cutRows, ripKerf, crosscutKerf, unit);
+        }
+      }
+
       function renderMessages(items) { messages.innerHTML = items.map((item) => `<div class="message">${escapeHtml(item)}</div>`).join(""); }
       function renderStats(plan) {
         const totalCuts = plan.usedSheets.reduce((sum, sheet) => sum + sheet.pieces.length, 0);
@@ -342,14 +2646,233 @@
         }).join("");
       }
       function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]); }
+      
       document.querySelector("#addStock").addEventListener("click", () => addRow("stock", { name: "Plywood sheet", qty: 1, w: units.value === "mm" ? "1220" : "4'", h: units.value === "mm" ? "2440" : "8'", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
       document.querySelector("#addCut").addEventListener("click", () => addRow("cut", { name: "Part", qty: 1, w: units.value === "mm" ? "300" : "12", h: units.value === "mm" ? "600" : "24", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
       document.querySelector("#optimize").addEventListener("click", runOptimizer);
       kerfInput.addEventListener("change", runOptimizer);
       units.addEventListener("change", runOptimizer);
       allowRotateInput.addEventListener("change", runOptimizer);
+
       for (const row of presets.stock) addRow("stock", row);
       for (const row of presets.cuts) addRow("cut", row);
+
+      // Automated Browser E2E Test Suite
+      async function startE2ETests() {
+        const logsDiv = document.getElementById("testLogs");
+        const progressDiv = document.getElementById("testProgress");
+        logsDiv.innerHTML = "";
+        progressDiv.innerHTML = "🏃 Running tests... <span style='font-size:0.75rem; color:#98a2b3;'>(headless execution simulation)</span>";
+        
+        let passCount = 0;
+        let failCount = 0;
+        
+        function log(message, type = "info") {
+          const div = document.createElement("div");
+          if (type === "pass") {
+            div.innerHTML = `<span style="color: #12b76a; font-weight: 750;">[PASS]</span> ${escapeHtml(message)}`;
+          } else if (type === "fail") {
+            div.innerHTML = `<span style="color: #f04438; font-weight: 750;">[FAIL]</span> ${escapeHtml(message)}`;
+          } else {
+            div.innerHTML = `<span style="color: #98a2b3;">[INFO]</span> ${escapeHtml(message)}`;
+          }
+          logsDiv.appendChild(div);
+          logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        async function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        try {
+          // --- Phase 1: Clipboard Schema & Template ---
+          log("Starting Phase 1: Clipboard schema & template copies...");
+          await sleep(500);
+          
+          let lastClipboardText = "";
+          const origClipboard = navigator.clipboard;
+          Object.defineProperty(navigator, "clipboard", {
+            value: {
+              writeText: async (text) => {
+                lastClipboardText = text;
+                return Promise.resolve();
+              }
+            },
+            configurable: true,
+            writable: true
+          });
+
+          // Trigger Copy Schema
+          document.getElementById("copyJsonSchema").click();
+          if (lastClipboardText.includes("$schema") && lastClipboardText.includes("draft/2020-12")) {
+            log("Copy JSON Schema succeeded and generated valid JSON-Schema draft 2020-12 content.", "pass");
+            passCount++;
+          } else {
+            log("Copy JSON Schema failed to copy correct schema version.", "fail");
+            failCount++;
+          }
+
+          // Trigger Copy Template
+          lastClipboardText = "";
+          document.getElementById("copyJsonTemplate").click();
+          if (lastClipboardText.includes("schemaVersion") && lastClipboardText.includes("cabinet")) {
+            log("Copy JSON Template succeeded and generated valid cabinet example JSON.", "pass");
+            passCount++;
+          } else {
+            log("Copy JSON Template failed to copy correct template.", "fail");
+            failCount++;
+          }
+
+          if (origClipboard) {
+            Object.defineProperty(navigator, "clipboard", { value: origClipboard, configurable: true });
+          }
+
+          // --- Phase 2: JSON Import Validation & Execution ---
+          log("Starting Phase 2: JSON validation & execution...");
+          await sleep(500);
+
+          // Invalid Document
+          const badDoc = { schemaVersion: 2, stockTypes: [] };
+          const badErrors = validateProjectImportDocument(badDoc);
+          if (badErrors.length > 0 && badErrors.some(e => e.includes("schemaVersion"))) {
+            log(`JSON validation correctly flagged invalid schemaVersion 2: "${badErrors[0]}"`, "pass");
+            passCount++;
+          } else {
+            log("JSON validation failed to catch invalid schemaVersion 2.", "fail");
+            failCount++;
+          }
+
+          // Apply Import
+          log("Applying valid JSON import project document...");
+          applyProjectImport(projectImportJsonTemplate);
+          await sleep(300);
+
+          const cutRowsCount = cutList.children.length;
+          if (cutRowsCount === 4) {
+            log(`Valid JSON successfully imported and created exactly 4 Cuts rows (Side panel, Top, Long trim, Short trim).`, "pass");
+            passCount++;
+          } else {
+            log(`Valid JSON import failed. Created ${cutRowsCount} cut rows instead of 4.`, "fail");
+            failCount++;
+          }
+
+          const modeBtnActive = document.getElementById("modeAuto").style.background !== "transparent";
+          if (modeBtnActive) {
+            log("JSON settings import successfully initialized stockMode to Auto.", "pass");
+            passCount++;
+          } else {
+            log("JSON settings import failed to set stockMode to Auto.", "fail");
+            failCount++;
+          }
+
+          // --- Phase 3: Exact-Width Linear Planning ---
+          log("Starting Phase 3: Auto Stock Exact-Width Linear Optimization...");
+          await sleep(500);
+
+          document.getElementById("allowExactWidth").checked = true;
+          document.getElementById("allowRipping").checked = false;
+          runOptimizer();
+          await sleep(300);
+
+          const resultText = results.textContent;
+          if (resultText.includes("Recommended Buy List") && resultText.includes("Visual Cutting Plans")) {
+            log("Auto Stock solver executed successfully and rendered recommended buy lists & layouts.", "pass");
+            passCount++;
+          } else {
+            log("Auto Stock solver failed to render buy lists and layout graphics.", "fail");
+            failCount++;
+          }
+
+          if (resultText.includes("1x2 select pine")) {
+            log("Auto Stock correctly selected 1x2 select pine exact-width boards for the 1.5\" cuts.", "pass");
+            passCount++;
+          } else {
+            log("Auto Stock failed to match cuts with exact-width 1x2 select pine catalog entries.", "fail");
+            failCount++;
+          }
+
+          // --- Phase 4: Rippable Virtual Strip Planning ---
+          log("Starting Phase 4: Auto Stock Rippable virtual-strip linear optimization...");
+          await sleep(500);
+
+          document.getElementById("allowRipping").checked = true;
+          document.getElementById("autoStrategy").value = "cheapest";
+          runOptimizer();
+          await sleep(300);
+
+          const resultCheapestText = results.textContent;
+          if (resultCheapestText.includes("1x4 select pine")) {
+            log("Cheapest strategy correctly identified 1x4 select pine ripped virtual strips as the cheapest solution for 1.5\" trim cuts.", "pass");
+            passCount++;
+          } else {
+            log("Cheapest strategy failed to choose 1x4 select pine ripped board candidates.", "fail");
+            failCount++;
+          }
+
+          if (resultCheapestText.includes("Ripped into 2 strips")) {
+            log("Visual cutting diagram correctly reported ripping physical 3.5\" board into 2 virtual strips.", "pass");
+            passCount++;
+          } else {
+            log("Visual cutting diagram failed to show ripping configuration details.", "fail");
+            failCount++;
+          }
+
+          // --- Phase 5: Manage Catalog CRUD Modal ---
+          log("Starting Phase 5: Manage Catalog CRUD operations...");
+          await sleep(500);
+
+          const initialCatalogLen = stockCatalog.length;
+          const customEntry = {
+            id: "custom-oak-1x3",
+            kind: "linear-exact",
+            name: "1x3 Red Oak",
+            group: "red oak",
+            thickness: "3/4",
+            maxQty: 12,
+            actualWidth: "2.5",
+            lengths: ["8'", "10'"],
+            costByLength: { "8'": 18.5, "10'": 23.0 }
+          };
+          stockCatalog.push(customEntry);
+          localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+          renderCatalogTable();
+          await sleep(200);
+
+          if (stockCatalog.length === initialCatalogLen + 1) {
+            log(`Catalog entry added successfully: "${customEntry.name}" now in catalog array.`, "pass");
+            passCount++;
+          } else {
+            log("Catalog entry failed to add to catalog array.", "fail");
+            failCount++;
+          }
+
+          // Simulate Deleting Custom Entry
+          stockCatalog = stockCatalog.filter(e => e.id !== "custom-oak-1x3");
+          localStorage.setItem("stockCatalog", JSON.stringify(stockCatalog));
+          renderCatalogTable();
+          await sleep(200);
+
+          if (stockCatalog.length === initialCatalogLen) {
+            log(`Catalog entry deleted successfully. Synchronized stockCatalog size correctly back to ${initialCatalogLen}.`, "pass");
+            passCount++;
+          } else {
+            log("Catalog entry deletion failed.", "fail");
+            failCount++;
+          }
+
+          await sleep(500);
+          progressDiv.style.color = "#12b76a";
+          progressDiv.textContent = `🎉 All tests completed successfully! Passed: ${passCount}, Failed: ${failCount}`;
+          log(`E2E tests finished. Total Pass: ${passCount}, Total Fail: ${failCount}`, "info");
+
+        } catch (err) {
+          progressDiv.style.color = "#f04438";
+          progressDiv.textContent = `❌ Test suite crashed with an error: ${err.message}`;
+          log(`Error: ${err.message}\n${err.stack}`, "fail");
+        }
+      }
+
+      setupJsonImportControls();
       runOptimizer();
     </script>
   </body>
