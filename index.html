@@ -58,7 +58,7 @@
       .checkline input { width: 16px; min-height: 16px; }
       .main { min-width: 0; display: grid; grid-template-rows: auto 1fr; }
       .toolbar { background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .stats { display: grid; grid-template-columns: repeat(4, minmax(112px, auto)); gap: 10px; }
+      .stats { display: grid; grid-template-columns: repeat(5, minmax(104px, auto)); gap: 10px; }
       .stat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 112px; }
       .stat b { display: block; font-size: 1.04rem; }
       .stat span { color: var(--muted); font-size: .74rem; font-weight: 700; text-transform: uppercase; }
@@ -126,7 +126,7 @@
         const text = String(raw || "").trim().toLowerCase().replace(/-/g, " ").replace(/feet|foot/g, "ft").replace(/inches|inch/g, "in");
         if (!text) return NaN;
         let totalInches = 0;
-        const tokens = text.match(/\d+(?:\.\d+)?(?:\s+\d+\/\d+)?|\d+\/\d+|['"]|ft|in|mm/g);
+        const tokens = text.match(/\d+(?:\.\d+)?\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?|['"]|ft|in|mm/g);
         if (!tokens) return NaN;
         for (let i = 0; i < tokens.length; i += 1) {
           const token = tokens[i];
@@ -208,38 +208,32 @@
       function findPlacement(sheet, part, kerf, allowRotate, strategy) {
         let best = null;
         for (let freeIndex = 0; freeIndex < sheet.free.length; freeIndex += 1) {
-          const rect = sheet.free[freeIndex];
+          const leaf = sheet.free[freeIndex];
           for (const option of orientations(part, allowRotate)) {
-            const footprintW = option.w + (option.w < rect.w - 0.001 ? kerf : 0);
-            const footprintH = option.h + (option.h < rect.h - 0.001 ? kerf : 0);
-            if (footprintW <= rect.w + 0.001 && footprintH <= rect.h + 0.001) {
-              const leftoverW = rect.w - footprintW;
-              const leftoverH = rect.h - footprintH;
-              const areaFit = rect.w * rect.h - footprintW * footprintH;
-              const shortFit = Math.min(leftoverW, leftoverH);
-              const longFit = Math.max(leftoverW, leftoverH);
-              const score =
-                strategy === "short"
-                  ? shortFit * 100000 + areaFit
-                  : strategy === "long"
-                    ? longFit * 100000 + areaFit
-                    : areaFit * 100000 + shortFit;
-              const candidate = { freeIndex, rect, ...option, footprintW, footprintH, score, areaFit, shortFit, longFit };
-              if (
-                !best ||
-                candidate.score < best.score ||
-                (candidate.score === best.score && candidate.areaFit < best.areaFit) ||
-                (candidate.score === best.score && candidate.areaFit === best.areaFit && candidate.longFit < best.longFit)
-              ) best = candidate;
+            const canCutW = option.w < leaf.w - 0.001;
+            const canCutH = option.h < leaf.h - 0.001;
+            const footprintW = option.w + (canCutW ? kerf : 0);
+            const footprintH = option.h + (canCutH ? kerf : 0);
+            if (footprintW > leaf.w + 0.001 || footprintH > leaf.h + 0.001) continue;
+            for (const split of ["vertical", "horizontal"]) {
+              const leftovers = splitGuillotineLeaf(leaf, option, footprintW, footprintH, split);
+              const reusableWaste = leftovers.reduce((sum, rect) => sum + rect.w * rect.h, 0);
+              const sliverPenalty = leftovers.reduce((sum, rect) => sum + (Math.min(rect.w, rect.h) < 3 ? rect.w * rect.h : 0), 0);
+              const cutCount = (canCutW ? 1 : 0) + (canCutH ? 1 : 0);
+              const axisBias = strategy === "short" ? Math.min(leaf.w - footprintW, leaf.h - footprintH) : strategy === "long" ? Math.max(leaf.w - footprintW, leaf.h - footprintH) : 0;
+              const score = (leaf.w * leaf.h - option.w * option.h) * 1000000 + cutCount * 10000 + sliverPenalty * 100 + axisBias - reusableWaste;
+              const candidate = { freeIndex, x: leaf.x, y: leaf.y, ...option, footprintW, footprintH, leftovers, cutCount, score };
+              if (!best || candidate.score < best.score) best = candidate;
             }
           }
         }
         return best;
       }
       function applyPlacement(sheet, part, placement) {
-        const used = { x: placement.rect.x, y: placement.rect.y, w: placement.footprintW, h: placement.footprintH };
-        sheet.free = splitFreeRects(sheet.free, used);
-        sheet.pieces.push({ ...part, x: placement.rect.x, y: placement.rect.y, placedW: placement.w, placedH: placement.h, rotated: placement.rotated });
+        sheet.free.splice(placement.freeIndex, 1, ...placement.leftovers);
+        sheet.free = pruneFreeRects(sheet.free);
+        sheet.pieces.push({ ...part, x: placement.x, y: placement.y, placedW: placement.w, placedH: placement.h, footprintW: placement.footprintW, footprintH: placement.footprintH, rotated: placement.rotated });
+        sheet.cutCount = (sheet.cutCount || 0) + placement.cutCount;
       }
       function placePart(sheet, part, kerf, allowRotate, strategy) {
         const best = findPlacement(sheet, part, kerf, allowRotate, strategy);
@@ -247,23 +241,27 @@
         applyPlacement(sheet, part, best);
         return true;
       }
-      function splitFreeRects(rects, used) {
-        const next = [];
-        for (const rect of rects) {
-          if (!intersects(rect, used)) {
-            next.push(rect);
-            continue;
-          }
-          if (used.x > rect.x) next.push({ x: rect.x, y: rect.y, w: used.x - rect.x, h: rect.h });
-          if (used.x + used.w < rect.x + rect.w) next.push({ x: used.x + used.w, y: rect.y, w: rect.x + rect.w - (used.x + used.w), h: rect.h });
-          if (used.y > rect.y) next.push({ x: rect.x, y: rect.y, w: rect.w, h: used.y - rect.y });
-          if (used.y + used.h < rect.y + rect.h) next.push({ x: rect.x, y: used.y + used.h, w: rect.w, h: rect.y + rect.h - (used.y + used.h) });
+      function splitGuillotineLeaf(leaf, option, footprintW, footprintH, split) {
+        const rightW = leaf.w - footprintW;
+        const bottomH = leaf.h - footprintH;
+        const leftovers = [];
+        if (split === "vertical") {
+          if (rightW > 0.01) leftovers.push({ x: leaf.x + footprintW, y: leaf.y, w: rightW, h: leaf.h });
+          if (bottomH > 0.01) leftovers.push({ x: leaf.x, y: leaf.y + footprintH, w: option.w, h: bottomH });
+        } else {
+          if (bottomH > 0.01) leftovers.push({ x: leaf.x, y: leaf.y + footprintH, w: leaf.w, h: bottomH });
+          if (rightW > 0.01) leftovers.push({ x: leaf.x + footprintW, y: leaf.y, w: rightW, h: option.h });
         }
-        return pruneFreeRects(next);
+        return leftovers;
       }
       function intersects(a, b) {
-        return a.x < b.x + b.w - 0.001 && a.x + a.w > b.x + 0.001 && a.y < b.y + b.h - 0.001 && a.y + a.h > b.y + 0.001;
+        const aw = a.footprintW ?? a.placedW ?? a.w;
+        const ah = a.footprintH ?? a.placedH ?? a.h;
+        const bw = b.footprintW ?? b.placedW ?? b.w;
+        const bh = b.footprintH ?? b.placedH ?? b.h;
+        return a.x < b.x + bw - 0.001 && a.x + aw > b.x + 0.001 && a.y < b.y + bh - 0.001 && a.y + ah > b.y + 0.001;
       }
+      function round(value) { return Math.round(value * 1000) / 1000; }
       function pruneFreeRects(rects) {
         return rects.filter((r) => r.w > 0.01 && r.h > 0.01).filter((rect, index, all) => !all.some((other, otherIndex) => index !== otherIndex && rect.x >= other.x - 0.001 && rect.y >= other.y - 0.001 && rect.x + rect.w <= other.x + other.w + 0.001 && rect.y + rect.h <= other.y + other.h + 0.001)).sort((a,b) => a.y-b.y || a.x-b.x);
       }
@@ -280,7 +278,7 @@
               if (!compatible(sheet, part)) continue;
               const placement = findPlacement(sheet, part, kerf, allowRotate, strategy);
               if (!placement) continue;
-              const openingSheetPenalty = sheet.pieces.length ? 0 : sheet.w * sheet.h;
+              const openingSheetPenalty = sheet.pieces.length ? 0 : sheet.w * sheet.h * 1000000000;
               const score = placement.score + openingSheetPenalty;
               if (score < bestScore) {
                 bestScore = score;
@@ -301,7 +299,8 @@
         const usedArea = usedSheets.reduce((sum, sheet) => sum + sheet.w * sheet.h, 0);
         const unplacedArea = plan.unplaced.reduce((sum, part) => sum + part.w * part.h, 0);
         const wasteArea = Math.max(0, usedArea - placedArea);
-        return { ...plan, usedSheets, placedArea, usedArea, wasteArea, yieldRate: usedArea ? placedArea / usedArea : 0, score: plan.unplaced.length * 1000000 + usedSheets.length * 10000 + wasteArea + unplacedArea * 100 };
+        const cutCount = usedSheets.reduce((sum, sheet) => sum + (sheet.cutCount || 0), 0);
+        return { ...plan, usedSheets, placedArea, usedArea, wasteArea, cutCount, yieldRate: usedArea ? placedArea / usedArea : 0, score: plan.unplaced.length * 1000000000000 + usedSheets.length * 100000000 + wasteArea * 10000 + cutCount * 100 + unplacedArea * 100000 };
       }
       function validate(stockRows, cutRows) {
         const errors = [];
@@ -326,7 +325,7 @@
       function renderStats(plan) {
         const totalCuts = plan.usedSheets.reduce((sum, sheet) => sum + sheet.pieces.length, 0);
         const wastePct = plan.usedArea ? plan.wasteArea / plan.usedArea * 100 : 0;
-        stats.innerHTML = [["Sheets", plan.usedSheets.length], ["Placed cuts", totalCuts], ["Yield", `${Math.round(plan.yieldRate * 100)}%`], ["Waste", `${Math.round(wastePct)}%`]].map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
+        stats.innerHTML = [["Sheets", plan.usedSheets.length], ["Parts", totalCuts], ["Saw cuts", plan.cutCount], ["Yield", `${Math.round(plan.yieldRate * 100)}%`], ["Waste", `${Math.round(wastePct)}%`]].map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
       }
       function renderPlan(plan) {
         const unit = units.value;
