@@ -77,8 +77,22 @@
       .piece { position: absolute; border: 2px solid #174f90; background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 45%), var(--cut); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4px; min-width: 18px; min-height: 18px; overflow: hidden; }
       .piece strong { max-width: 100%; font-size: clamp(.5rem, 1.4vw, .9rem); line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .piece span { font-size: clamp(.46rem, 1.05vw, .72rem); opacity: .9; white-space: nowrap; }
+      .cut-line { position: absolute; z-index: 5; pointer-events: none; background: #f97316; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(154,52,18,.28); }
+      .cut-line.vertical { width: 2px; transform: translateX(-1px); }
+      .cut-line.horizontal { height: 2px; transform: translateY(-1px); }
+      .cut-label { position: absolute; z-index: 6; min-width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; background: #fff7ed; border: 1px solid #f97316; color: #9a3412; font-size: .68rem; font-weight: 850; transform: translate(-50%, -50%); pointer-events: none; }
       .offcuts { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: .82rem; }
       .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: #fff; }
+      .cut-sequence { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; }
+      .cut-sequence-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #fbfcfd; border-bottom: 1px solid var(--line); font-size: .84rem; font-weight: 800; }
+      .cut-sequence-list { margin: 0; padding: 0; list-style: none; display: grid; }
+      .cut-step { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-top: 1px solid #eef1f5; font-size: .84rem; }
+      .cut-step:first-child { border-top: 0; }
+      .cut-step-num { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: #fff7ed; border: 1px solid #f97316; color: #9a3412; font-size: .72rem; font-weight: 850; }
+      .cut-step-main { display: grid; gap: 2px; }
+      .cut-step-main strong { font-size: .84rem; }
+      .cut-step-main span, .cut-step small { color: var(--muted); }
+      .cut-step small { white-space: nowrap; font-weight: 750; }
       .empty { max-width: 620px; color: var(--muted); font-size: 1rem; line-height: 1.55; }
       
       /* Modern Modal Styling */
@@ -1541,7 +1555,7 @@
       }
       function expandStock(rows) {
         const sheets = [];
-        for (const row of rows) for (let i = 0; i < row.qty; i += 1) sheets.push({ ...row, id: `${row.id}-${i}`, label: `${row.name} ${i + 1}`, free: [{ x: 0, y: 0, w: row.w, h: row.h }], pieces: [] });
+        for (const row of rows) for (let i = 0; i < row.qty; i += 1) sheets.push({ ...row, id: `${row.id}-${i}`, label: `${row.name} ${i + 1}`, free: [{ x: 0, y: 0, w: row.w, h: row.h }], pieces: [], cutSteps: [] });
         return sheets;
       }
       function expandCuts(rows) {
@@ -1582,7 +1596,7 @@
               const cutCount = (canCutW ? 1 : 0) + (canCutH ? 1 : 0);
               const axisBias = strategy === "short" ? Math.min(leaf.w - footprintW, leaf.h - footprintH) : strategy === "long" ? Math.max(leaf.w - footprintW, leaf.h - footprintH) : 0;
               const score = (leaf.w * leaf.h - option.w * option.h) * 1000000 + cutCount * 10000 + sliverPenalty * 100 + axisBias - reusableWaste;
-              const candidate = { freeIndex, x: leaf.x, y: leaf.y, ...option, footprintW, footprintH, leftovers, cutCount, score };
+              const candidate = { freeIndex, leaf, split, canCutW, canCutH, x: leaf.x, y: leaf.y, ...option, footprintW, footprintH, leftovers, cutCount, score };
               if (!best || candidate.score < best.score) best = candidate;
             }
           }
@@ -1593,6 +1607,7 @@
         sheet.free.splice(placement.freeIndex, 1, ...placement.leftovers);
         sheet.free = pruneFreeRects(sheet.free);
         sheet.pieces.push({ ...part, x: placement.x, y: placement.y, placedW: placement.w, placedH: placement.h, footprintW: placement.footprintW, footprintH: placement.footprintH, rotated: placement.rotated });
+        sheet.cutSteps.push(...buildCutSteps(sheet, part, placement));
         sheet.cutCount = (sheet.cutCount || 0) + placement.cutCount;
       }
       function placePart(sheet, part, kerf, allowRotate, strategy) {
@@ -1613,6 +1628,38 @@
           if (rightW > 0.01) leftovers.push({ x: leaf.x + footprintW, y: leaf.y, w: rightW, h: option.h });
         }
         return leftovers;
+      }
+      function buildCutSteps(sheet, part, placement) {
+        const base = sheet.cutSteps.length;
+        const steps = [];
+        const addVertical = () => steps.push({
+          number: base + steps.length + 1,
+          orientation: "vertical",
+          x: placement.x + placement.w,
+          y1: placement.leaf.y,
+          y2: placement.leaf.y + (placement.split === "vertical" ? placement.leaf.h : placement.h),
+          length: placement.split === "vertical" ? placement.leaf.h : placement.h,
+          piece: part.name,
+          note: `Separate ${formatMeasure(placement.w, units.value)} width${placement.rotated ? " (rotated)" : ""}`
+        });
+        const addHorizontal = () => steps.push({
+          number: base + steps.length + 1,
+          orientation: "horizontal",
+          y: placement.y + placement.h,
+          x1: placement.leaf.x,
+          x2: placement.leaf.x + (placement.split === "horizontal" ? placement.leaf.w : placement.w),
+          length: placement.split === "horizontal" ? placement.leaf.w : placement.w,
+          piece: part.name,
+          note: `Separate ${formatMeasure(placement.h, units.value)} length${placement.rotated ? " (rotated)" : ""}`
+        });
+        if (placement.split === "vertical") {
+          if (placement.canCutW) addVertical();
+          if (placement.canCutH) addHorizontal();
+        } else {
+          if (placement.canCutH) addHorizontal();
+          if (placement.canCutW) addVertical();
+        }
+        return steps;
       }
       function intersects(a, b) {
         const aw = a.footprintW ?? a.placedW ?? a.w;
@@ -2211,6 +2258,8 @@
             const left = piece.x / sheet.w * 100, top = piece.y / sheet.h * 100, width = piece.placedW / sheet.w * 100, height = piece.placedH / sheet.h * 100;
             return `<div class="piece" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;" title="${escapeHtml(piece.label)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(piece.w, unit)} x ${formatMeasure(piece.h, unit)}${piece.rotated ? " R" : ""}</span></div>`;
           }).join("");
+          const cutOverlays = renderCutOverlays(sheet);
+          const cutSequence = renderCutSequence(sheet, unit);
           const offcuts = sheet.free.filter((rect) => rect.w * rect.h > sheet.w * sheet.h * .015).slice(0, 8).map((rect) => `<span class="chip">${formatMeasure(rect.w, unit)} x ${formatMeasure(rect.h, unit)}</span>`).join("");
           const sheetYield = Math.round(sheet.pieces.reduce((sum, p) => sum + p.w * p.h, 0) / (sheet.w * sheet.h) * 100);
           return `
@@ -2223,8 +2272,9 @@
                 <div class="sheet-meta">Area yield ${sheetYield}%</div>
               </div>
               <div class="board-wrap">
-                <div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}</div>
+                <div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}${cutOverlays}</div>
                 <div class="offcuts">${offcuts || '<span class="chip">No large offcuts</span>'}</div>
+                ${cutSequence}
               </div>
             </section>
           `;
@@ -2631,6 +2681,33 @@
         const wastePct = plan.usedArea ? plan.wasteArea / plan.usedArea * 100 : 0;
         stats.innerHTML = [["Sheets", plan.usedSheets.length], ["Parts", totalCuts], ["Saw cuts", plan.cutCount], ["Yield", `${Math.round(plan.yieldRate * 100)}%`], ["Waste", `${Math.round(wastePct)}%`]].map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
       }
+      function renderCutOverlays(sheet) {
+        return (sheet.cutSteps || []).map((step) => {
+          if (step.orientation === "vertical") {
+            const left = step.x / sheet.w * 100;
+            const top = step.y1 / sheet.h * 100;
+            const height = (step.y2 - step.y1) / sheet.h * 100;
+            const labelTop = (step.y1 + (step.y2 - step.y1) / 2) / sheet.h * 100;
+            return `<div class="cut-line vertical" style="left:${left}%;top:${top}%;height:${height}%;"></div><div class="cut-label" style="left:${left}%;top:${labelTop}%;">${step.number}</div>`;
+          }
+          const top = step.y / sheet.h * 100;
+          const left = step.x1 / sheet.w * 100;
+          const width = (step.x2 - step.x1) / sheet.w * 100;
+          const labelLeft = (step.x1 + (step.x2 - step.x1) / 2) / sheet.w * 100;
+          return `<div class="cut-line horizontal" style="left:${left}%;top:${top}%;width:${width}%;"></div><div class="cut-label" style="left:${labelLeft}%;top:${top}%;">${step.number}</div>`;
+        }).join("");
+      }
+      function renderCutSequence(sheet, unit) {
+        if (!sheet.cutSteps || !sheet.cutSteps.length) return "";
+        const items = sheet.cutSteps.map((step) => {
+          const direction = step.orientation === "vertical" ? "Rip" : "Crosscut";
+          const position = step.orientation === "vertical"
+            ? `at ${formatMeasure(step.x, unit)} from the left`
+            : `at ${formatMeasure(step.y, unit)} from the top`;
+          return `<li class="cut-step"><span class="cut-step-num">${step.number}</span><span class="cut-step-main"><strong>${direction} for ${escapeHtml(step.piece)}</strong><span>${escapeHtml(step.note)}; ${position}</span></span><small>${formatMeasure(step.length, unit)}</small></li>`;
+        }).join("");
+        return `<div class="cut-sequence"><div class="cut-sequence-head"><span>Cut sequence</span><span>${sheet.cutSteps.length} continuous cuts</span></div><ol class="cut-sequence-list">${items}</ol></div>`;
+      }
       function renderPlan(plan) {
         const unit = units.value;
         if (!plan.usedSheets.length) { results.className = "empty"; results.textContent = "No cuts were placed."; return; }
@@ -2640,9 +2717,11 @@
             const left = piece.x / sheet.w * 100, top = piece.y / sheet.h * 100, width = piece.placedW / sheet.w * 100, height = piece.placedH / sheet.h * 100;
             return `<div class="piece" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;" title="${escapeHtml(piece.label)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(piece.w, unit)} x ${formatMeasure(piece.h, unit)}${piece.rotated ? " R" : ""}</span></div>`;
           }).join("");
+          const cutOverlays = renderCutOverlays(sheet);
+          const cutSequence = renderCutSequence(sheet, unit);
           const offcuts = sheet.free.filter((rect) => rect.w * rect.h > sheet.w * sheet.h * .015).slice(0, 8).map((rect) => `<span class="chip">${formatMeasure(rect.w, unit)} x ${formatMeasure(rect.h, unit)}</span>`).join("");
           const sheetYield = Math.round(sheet.pieces.reduce((sum, p) => sum + p.w * p.h, 0) / (sheet.w * sheet.h) * 100);
-          return `<section class="sheet"><div class="sheet-header"><div><div class="sheet-title">Sheet ${index + 1}: ${escapeHtml(sheet.label)}</div><div class="sheet-meta">${formatMeasure(sheet.w, unit)} x ${formatMeasure(sheet.h, unit)} | ${sheet.pieces.length} cuts</div></div><div class="sheet-meta">Area yield ${sheetYield}%</div></div><div class="board-wrap"><div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}</div><div class="offcuts">${offcuts || '<span class="chip">No large offcuts</span>'}</div></div></section>`;
+          return `<section class="sheet"><div class="sheet-header"><div><div class="sheet-title">Sheet ${index + 1}: ${escapeHtml(sheet.label)}</div><div class="sheet-meta">${formatMeasure(sheet.w, unit)} x ${formatMeasure(sheet.h, unit)} | ${sheet.pieces.length} parts | ${(sheet.cutSteps || []).length} cuts</div></div><div class="sheet-meta">Area yield ${sheetYield}%</div></div><div class="board-wrap"><div class="board" style="--sheet-ratio:${sheet.w} / ${sheet.h};">${pieces}${cutOverlays}</div><div class="offcuts">${offcuts || '<span class="chip">No large offcuts</span>'}</div>${cutSequence}</div></section>`;
         }).join("");
       }
       function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]); }
