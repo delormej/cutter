@@ -56,6 +56,10 @@
       .btn.ghost:hover { background: #fbfcfd; border-color: var(--muted); color: var(--ink); }
       .btn.icon { width: 38px; padding: 0; flex: 0 0 auto; }
       .item { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; margin-bottom: 10px; }
+      .item.unplaced { border-color: #f04438; background: #fff5f5; box-shadow: 0 0 0 2px rgba(240, 68, 56, .12); }
+      .item.unplaced input { border-color: #fda29b; background: #fffafa; }
+      .fit-warning { color: #b42318; font-size: .78rem; font-weight: 800; display: none; }
+      .item.unplaced .fit-warning { display: block; }
       .item-head { display: flex; align-items: center; gap: 8px; }
       .item-head input { flex: 1 1 auto; }
       .checkline { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #394150; font-size: .88rem; }
@@ -312,6 +316,7 @@
           <div class="grid">
             <button class="btn" id="importJsonBtn" type="button">Import JSON</button>
             <button class="btn" id="exportJsonBtn" type="button">Export JSON</button>
+            <button class="btn ghost" id="newPlannerBtn" type="button" style="grid-column: 1 / -1;">New / Clear Planner</button>
           </div>
           <div class="grid" style="margin-top: 10px; grid-template-columns: 1.1fr 1fr;">
             <button class="btn ghost" id="copyJsonSchema" type="button" style="font-size: 0.74rem; padding: 4px 6px; min-height: 28px;">Copy Schema</button>
@@ -396,7 +401,7 @@
     </div>
     
     <template id="stockTemplate"><div class="item stock-item"><div class="item-head"><input data-field="name" aria-label="Stock name" /><button class="btn icon ghost" data-remove type="button" title="Remove stock">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
-    <template id="cutTemplate"><div class="item cut-item"><div class="item-head"><input data-field="name" aria-label="Cut name" /><button class="btn icon ghost" data-remove type="button" title="Remove cut">x</button></div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
+    <template id="cutTemplate"><div class="item cut-item"><div class="item-head"><input data-field="name" aria-label="Cut name" /><button class="btn icon ghost" data-remove type="button" title="Remove cut">x</button></div><div class="fit-warning">This cut does not fit the available material.</div><div class="grid three"><label>Qty <input data-field="qty" type="number" min="1" step="1" /></label><label>Width <input data-field="w" type="text" inputmode="decimal" /></label><label>Length <input data-field="h" type="text" inputmode="decimal" /></label></div><div class="grid"><label>Thickness <input data-field="thickness" type="text" inputmode="decimal" /></label><label>Group <input data-field="group" type="text" /></label></div></div></template>
 
     <!-- Dialog Backdrops -->
     <div class="modal-backdrop" id="confirmModal">
@@ -877,7 +882,7 @@
       }
 
       // Stock Mode Toggling
-      function setStockMode(mode) {
+      function setStockMode(mode, shouldRun = true) {
         currentStockMode = mode;
         const manualBtn = document.getElementById("modeManual");
         const autoBtn = document.getElementById("modeAuto");
@@ -902,7 +907,7 @@
           autoSection.style.display = "block";
           globalKerfLabel.style.display = "none";
         }
-        runOptimizer();
+        if (shouldRun) runOptimizer();
       }
 
       // Clipboard handling
@@ -1560,7 +1565,7 @@
       }
       function expandCuts(rows) {
         const parts = [];
-        for (const row of rows) for (let i = 0; i < row.qty; i += 1) parts.push({ ...row, id: `${row.id}-${i}`, label: row.qty > 1 ? `${row.name} ${i + 1}` : row.name });
+        for (const row of rows) for (let i = 0; i < row.qty; i += 1) parts.push({ ...row, id: `${row.id}-${i}`, sourceRowId: row.id, label: row.qty > 1 ? `${row.name} ${i + 1}` : row.name });
         return parts;
       }
       function compatible(sheet, part) {
@@ -1734,7 +1739,7 @@
         const pieces = [];
         for (const cut of cuts) {
           for (let i = 0; i < cut.qty; i++) {
-            pieces.push({ id: `${cut.id}-${i}`, name: cut.name, length: cut.h });
+            pieces.push({ id: `${cut.id}-${i}`, sourceRowId: cut.sourceRowId || cut.id, name: cut.name, length: cut.h });
           }
         }
         pieces.sort((a, b) => b.length - a.length);
@@ -1782,7 +1787,7 @@
         const pieces = [];
         for (const cut of cuts) {
           for (let i = 0; i < cut.qty; i++) {
-            pieces.push({ id: `${cut.id}-${i}`, name: cut.name, length: cut.h });
+            pieces.push({ id: `${cut.id}-${i}`, sourceRowId: cut.sourceRowId || cut.id, name: cut.name, length: cut.h });
           }
         }
         pieces.sort((a, b) => b.length - a.length);
@@ -2129,6 +2134,7 @@
         const planGroups = [];
         const warnings = [];
         const buyList = [];
+        const autoUnplaced = [];
 
         if (groupsMap.size === 0) {
           renderMessages(["No cuts available for Auto Stock."]);
@@ -2143,6 +2149,7 @@
 
           if (matchingCatalog.length === 0) {
             warnings.push(`No stock catalog entries match group "${group.group}" and thickness "${group.thickness}".`);
+            autoUnplaced.push(...group.cuts);
             continue;
           }
 
@@ -2153,6 +2160,7 @@
             const sheetCandidates = matchingCatalog.filter(e => e.kind === "sheet");
             if (sheetCandidates.length === 0) {
               warnings.push(`No sheet stock catalog entries match "${group.thickness} ${group.group}".`);
+              autoUnplaced.push(...group.cuts);
               continue;
             }
             const scenarios = suggestSheetStockScenarios(group.cuts, sheetCandidates, options);
@@ -2161,6 +2169,7 @@
               alternatives = scenarios.slice(1);
             } else {
               warnings.push(`Could not fit sheet cuts for "${group.thickness} ${group.group}" into available sheet sizes.`);
+              autoUnplaced.push(...group.cuts);
             }
           } else {
             const linearCandidates = matchingCatalog.filter(e => 
@@ -2170,6 +2179,7 @@
 
             if (linearCandidates.length === 0) {
               warnings.push(`No allowed linear stock matches "${group.thickness} ${group.group}" with required width ${formatMeasure(group.width, unit)}.`);
+              autoUnplaced.push(...group.cuts);
               continue;
             }
 
@@ -2179,10 +2189,12 @@
               alternatives = scenarios.slice(1);
             } else {
               warnings.push(`Could not fit linear cuts for "${group.thickness} ${group.group}" at width ${formatMeasure(group.width, unit)} into available boards.`);
+              autoUnplaced.push(...group.cuts);
             }
           }
 
           if (recommended) {
+            autoUnplaced.push(...(recommended.unplaced || []));
             planGroups.push({
               materialKey: group.key,
               kind: group.kind,
@@ -2217,13 +2229,11 @@
           }
         }
 
-        renderMessages(warnings.concat(
-          planGroups.some(g => g.recommended.unplaced && g.recommended.unplaced.length > 0)
-            ? ["Some cuts could not fit in the recommended stock quantities."]
-            : []
-        ));
+        highlightUnplacedCuts(autoUnplaced);
+        renderMessages(warnings.concat(formatUnplacedWarning(autoUnplaced)));
 
         renderAutoStockStats(planGroups);
+        renderAutoStockPlan(planGroups, buyList, warnings, unit, options);
       }
 
       let lastBuyList = []; // Global variable to store active buy list for cloning
@@ -2620,6 +2630,7 @@
       }
 
       function runOptimizer() {
+        clearUnplacedCutHighlights();
         const cutRows = readRows(cutList, "cut");
         const unit = units.value;
         const errors = [];
@@ -2653,7 +2664,8 @@
           }
 
           const plan = optimize(stockRows, cutRows, kerf, allowRotateInput.checked);
-          renderMessages(plan.unplaced.length ? [`${plan.unplaced.length} cut(s) could not fit in the available stock.`] : []);
+          highlightUnplacedCuts(plan.unplaced);
+          renderMessages(formatUnplacedWarning(plan.unplaced));
           renderStats(plan);
           renderPlan(plan);
         } else {
@@ -2676,6 +2688,50 @@
       }
 
       function renderMessages(items) { messages.innerHTML = items.map((item) => `<div class="message">${escapeHtml(item)}</div>`).join(""); }
+      function clearUnplacedCutHighlights() {
+        for (const row of cutList.children) row.classList.remove("unplaced");
+      }
+      function highlightUnplacedCuts(unplaced) {
+        clearUnplacedCutHighlights();
+        const rowIds = new Set(unplaced.map((part) => part.sourceRowId || part.id));
+        [...cutList.children].forEach((row, index) => {
+          if (rowIds.has(`cut-${index}`)) row.classList.add("unplaced");
+        });
+      }
+      function formatUnplacedWarning(unplaced) {
+        if (!unplaced.length) return [];
+        const counts = new Map();
+        for (const part of unplaced) counts.set(part.name, (counts.get(part.name) || 0) + 1);
+        const details = [...counts.entries()].map(([name, qty]) => `${qty} @ ${name}`).join(", ");
+        return [`${unplaced.length} cut(s) could not fit in the available stock: ${details}`];
+      }
+      function renderEmptyPlanner() {
+        messages.innerHTML = "";
+        stats.innerHTML = "";
+        results.className = "empty";
+        results.textContent = "Enter stock and cut dimensions, then run the optimizer.";
+      }
+      function resetPlanner() {
+        const hasRows = stockList.children.length > 0 || cutList.children.length > 0;
+        const hasResults = results.className !== "empty" || stats.children.length > 0 || messages.children.length > 0;
+        if ((hasRows || hasResults) && !confirm("Clear all stock, cuts, and layout results?")) return;
+
+        stockList.innerHTML = "";
+        cutList.innerHTML = "";
+        units.value = "in";
+        kerfInput.value = "1/8";
+        allowRotateInput.checked = true;
+        document.getElementById("ripKerf").value = "1/8";
+        document.getElementById("crosscutKerf").value = "1/8";
+        document.getElementById("autoStrategy").value = "practical";
+        document.getElementById("allowExactWidth").checked = true;
+        document.getElementById("allowRipping").checked = true;
+        for (const checkbox of document.querySelectorAll(".length-checkbox")) {
+          checkbox.checked = checkbox.value === "8" || checkbox.value === "10" || checkbox.value === "12";
+        }
+        setStockMode("manual", false);
+        renderEmptyPlanner();
+      }
       function renderStats(plan) {
         const totalCuts = plan.usedSheets.reduce((sum, sheet) => sum + sheet.pieces.length, 0);
         const wastePct = plan.usedArea ? plan.wasteArea / plan.usedArea * 100 : 0;
@@ -2708,11 +2764,38 @@
         }).join("");
         return `<div class="cut-sequence"><div class="cut-sequence-head"><span>Cut sequence</span><span>${sheet.cutSteps.length} continuous cuts</span></div><ol class="cut-sequence-list">${items}</ol></div>`;
       }
+      function isLinearManualSheet(sheet) {
+        const narrowSide = Math.min(sheet.w, sheet.h);
+        const longSide = Math.max(sheet.w, sheet.h);
+        return longSide > 0 && narrowSide / longSide < 0.08;
+      }
+      function renderManualLinearSheet(sheet, index, unit) {
+        const lengthAxis = sheet.h >= sheet.w ? "y" : "x";
+        const stockLength = lengthAxis === "y" ? sheet.h : sheet.w;
+        const stockWidth = lengthAxis === "y" ? sheet.w : sheet.h;
+        const pieces = [...sheet.pieces].sort((a, b) => (lengthAxis === "y" ? a.y - b.y : a.x - b.x));
+        const segments = pieces.map((piece) => {
+          const length = lengthAxis === "y" ? piece.placedH : piece.placedW;
+          const width = Math.max(0.5, length / stockLength * 100);
+          return `<div class="linear-board-segment" style="width:${width}%;" title="${escapeHtml(piece.name)}: ${formatMeasure(length, unit)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(length, unit)}</span></div>`;
+        }).join("");
+        const usedLength = pieces.reduce((max, piece) => {
+          const end = lengthAxis === "y" ? piece.y + piece.footprintH : piece.x + piece.footprintW;
+          return Math.max(max, end);
+        }, 0);
+        const wasteLength = Math.max(0, stockLength - usedLength);
+        const waste = wasteLength > 0.001
+          ? `<div class="linear-board-waste" style="width:${wasteLength / stockLength * 100}%;"><span>Waste: ${formatMeasure(wasteLength, unit)}</span></div>`
+          : "";
+        const cutSequence = renderCutSequence(sheet, unit);
+        return `<section class="sheet"><div class="sheet-header"><div><div class="sheet-title">Board ${index + 1}: ${escapeHtml(sheet.label)}</div><div class="sheet-meta">${formatMeasure(stockWidth, unit)} x ${formatMeasure(stockLength, unit)} | ${pieces.length} parts | ${(sheet.cutSteps || []).length} cuts</div></div><div class="sheet-meta">Linear stock</div></div><div class="linear-board-card"><div class="linear-board-title"><span>${escapeHtml(sheet.label)}</span><span class="chip">${formatMeasure(stockLength, unit)}</span></div><div class="linear-board-bar">${segments}${waste}</div></div>${cutSequence}</section>`;
+      }
       function renderPlan(plan) {
         const unit = units.value;
         if (!plan.usedSheets.length) { results.className = "empty"; results.textContent = "No cuts were placed."; return; }
         results.className = "";
         results.innerHTML = plan.usedSheets.map((sheet, index) => {
+          if (isLinearManualSheet(sheet)) return renderManualLinearSheet(sheet, index, unit);
           const pieces = sheet.pieces.map((piece) => {
             const left = piece.x / sheet.w * 100, top = piece.y / sheet.h * 100, width = piece.placedW / sheet.w * 100, height = piece.placedH / sheet.h * 100;
             return `<div class="piece" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;" title="${escapeHtml(piece.label)}"><strong>${escapeHtml(piece.name)}</strong><span>${formatMeasure(piece.w, unit)} x ${formatMeasure(piece.h, unit)}${piece.rotated ? " R" : ""}</span></div>`;
@@ -2728,6 +2811,7 @@
       
       document.querySelector("#addStock").addEventListener("click", () => addRow("stock", { name: "Plywood sheet", qty: 1, w: units.value === "mm" ? "1220" : "4'", h: units.value === "mm" ? "2440" : "8'", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
       document.querySelector("#addCut").addEventListener("click", () => addRow("cut", { name: "Part", qty: 1, w: units.value === "mm" ? "300" : "12", h: units.value === "mm" ? "600" : "24", thickness: units.value === "mm" ? "19" : "3/4", group: "plywood" }));
+      document.querySelector("#newPlannerBtn").addEventListener("click", resetPlanner);
       document.querySelector("#optimize").addEventListener("click", runOptimizer);
       kerfInput.addEventListener("change", runOptimizer);
       units.addEventListener("change", runOptimizer);

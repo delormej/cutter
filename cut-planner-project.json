@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "Exported Project"
+  },
+  "settings": {
+    "units": "in",
+    "kerf": "1/8",
+    "allowRotate": true,
+    "stockMode": "manual"
+  },
+  "stockTypes": [
+    {
+      "id": "plywood-3-4",
+      "name": "3/4 plywood",
+      "material": "plywood",
+      "thickness": "3/4",
+      "kind": "sheet"
+    },
+    {
+      "id": "painted-trim-3-4",
+      "name": "3/4 painted trim",
+      "material": "painted trim",
+      "thickness": "3/4",
+      "kind": "linear"
+    }
+  ],
+  "manualStock": [
+    {
+      "id": "stock-0",
+      "name": "Plywood sheet",
+      "stockTypeId": "plywood-3-4",
+      "qty": 3,
+      "width": 48,
+      "length": 96
+    },
+    {
+      "id": "stock-1",
+      "name": "Trim",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 10,
+      "width": 1.5,
+      "length": 96
+    }
+  ],
+  "cuts": [
+    {
+      "id": "cut-0",
+      "name": "Plywood panel 75 x 11 1/4",
+      "stockTypeId": "plywood-3-4",
+      "qty": 4,
+      "width": 11.25,
+      "length": 75
+    },
+    {
+      "id": "cut-1",
+      "name": "Plywood panel 40 x 11 1/4",
+      "stockTypeId": "plywood-3-4",
+      "qty": 4,
+      "width": 11.25,
+      "length": 40
+    },
+    {
+      "id": "cut-2",
+      "name": "Plywood panel 70 1/2 x 11 1/4",
+      "stockTypeId": "plywood-3-4",
+      "qty": 2,
+      "width": 11.25,
+      "length": 70.5
+    },
+    {
+      "id": "cut-3",
+      "name": "Plywood panel 29 1/2 x 11 1/4",
+      "stockTypeId": "plywood-3-4",
+      "qty": 4,
+      "width": 11.25,
+      "length": 29.5
+    },
+    {
+      "id": "cut-4",
+      "name": "Plywood panel 18 1/2 x 11 1/4",
+      "stockTypeId": "plywood-3-4",
+      "qty": 2,
+      "width": 11.25,
+      "length": 18.5
+    },
+    {
+      "id": "cut-5",
+      "name": "Trim board 75",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 4,
+      "width": 1.5,
+      "length": 75
+    },
+    {
+      "id": "cut-6",
+      "name": "Trim board 17 1/8",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 2,
+      "width": 1.5,
+      "length": 17.125
+    },
+    {
+      "id": "cut-7",
+      "name": "Trim board 28 3/8",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 3,
+      "width": 1.5,
+      "length": 28.375
+    },
+    {
+      "id": "cut-8",
+      "name": "Trim board 38 7/8",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 3,
+      "width": 1.5,
+      "length": 38.875
+    },
+    {
+      "id": "cut-9",
+      "name": "Trim board 69 3/4",
+      "stockTypeId": "painted-trim-3-4",
+      "qty": 1,
+      "width": 1.5,
+      "length": 69.75
+    }
+  ]
+}
